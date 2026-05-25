@@ -453,9 +453,6 @@ function renderOffersTable() {
             </td>
             <td class="text-end" onclick="event.stopPropagation()">
                 <div class="btn-group">
-                    <button class="btn btn-sm btn-outline-secondary border-0 py-1" onclick="openDetailModal('${offer.id}')" title="Ver Detalles">
-                        <i class="bi bi-eye text-info" style="font-size: 1.1rem;"></i>
-                    </button>
                     <button class="btn btn-sm btn-outline-secondary border-0 py-1" onclick="openOfferModal('${offer.id}')" title="Editar">
                         <i class="bi bi-pencil text-warning" style="font-size: 1.1rem;"></i>
                     </button>
@@ -495,9 +492,6 @@ function renderOffersTable() {
                     <span><i class="bi bi-currency-euro me-1"></i>${formattedSalary}</span>
                 </div>
                 <div class="d-flex justify-content-end gap-2" onclick="event.stopPropagation()">
-                    <button class="btn btn-sm btn-premium-secondary py-1 px-2 fs-8" onclick="openDetailModal('${offer.id}')" aria-label="Ver detalles de ${offer.empresa}">
-                        <i class="bi bi-eye text-info me-1"></i>Detalles
-                    </button>
                     <button class="btn btn-sm btn-premium-secondary py-1 px-2 fs-8" onclick="openOfferModal('${offer.id}')" aria-label="Editar postulación de ${offer.empresa}">
                         <i class="bi bi-pencil text-warning me-1"></i>Editar
                     </button>
@@ -560,7 +554,7 @@ function openOfferModal(id = null) {
     document.getElementById('modalOfferTitle').textContent = 'Registrar Nueva Postulación';
 
     if (id) {
-        const offer = AppState.offers.find(o => o.id === id);
+        const offer = AppState.offers.find(o => String(o.id) === String(id));
         if (offer) {
             document.getElementById('modalOfferTitle').textContent = 'Editar Postulación';
             document.getElementById('offer-id').value = offer.id;
@@ -729,7 +723,7 @@ async function handleOfferSubmit(e) {
         let localOffers = JSON.parse(localStorage.getItem(MOCK_OFFERS_KEY) || '[]');
         
         if (isEdit) {
-            localOffers = localOffers.map(o => o.id === id ? { ...o, ...payload } : o);
+            localOffers = localOffers.map(o => String(o.id) === String(id) ? { ...o, ...payload } : o);
             // Si el estado cambia a "Rechazado" o "Aceptado", u otros, revisar si hay entrevistas agendadas
             showToast('Postulación actualizada en base de datos local (Mock).', 'success');
         } else {
@@ -750,7 +744,7 @@ async function handleOfferSubmit(e) {
 
 // Abrir detalle modal
 function openDetailModal(id) {
-    const offer = AppState.offers.find(o => o.id === id);
+    const offer = AppState.offers.find(o => String(o.id) === String(id));
     if (!offer) return;
 
     AppState.selectedOfferId = id;
@@ -862,12 +856,12 @@ async function deleteOffer(id) {
         console.warn('Error al eliminar en la API, borrando localmente.');
         
         let localOffers = JSON.parse(localStorage.getItem(MOCK_OFFERS_KEY) || '[]');
-        localOffers = localOffers.filter(o => o.id !== id);
+        localOffers = localOffers.filter(o => String(o.id) !== String(id));
         localStorage.setItem(MOCK_OFFERS_KEY, JSON.stringify(localOffers));
 
         // Borrar eventos asociados también
         let localEvents = JSON.parse(localStorage.getItem('job_tracker_events') || '[]');
-        localEvents = localEvents.filter(ev => ev.oferta_id !== id);
+        localEvents = localEvents.filter(ev => String(ev.oferta_id) !== String(id));
         localStorage.setItem('job_tracker_events', JSON.stringify(localEvents));
 
         showToast('Postulación eliminada localmente.', 'success');

@@ -1224,4 +1224,31 @@ h1, h2, h3, h4, h5, h6 {
     text-shadow: 0 0 8px rgba(90, 98, 246, 0.4);
 }
 
+/* Spinner overlay to prevent layout shift */
+.table-responsive-custom,
+#questions-list-container {
+    position: relative;
+    min-height: 250px;
+}
+
+#loading-spinner,
+#loading-spinner-questions {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(7, 7, 14, 0.75);
+    backdrop-filter: blur(6px);
+    z-index: 15;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    border-radius: 12px;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+
 

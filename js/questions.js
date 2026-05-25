@@ -338,7 +338,7 @@ function openQuestionModal(id = null) {
     document.getElementById('question-answer').classList.remove('is-invalid');
 
     if (id) {
-        const question = AppStateQuestions.questions.find(q => q.id === id);
+        const question = AppStateQuestions.questions.find(q => String(q.id) === String(id));
         if (question) {
             document.getElementById('modalQuestionTitle').textContent = 'Editar Pregunta de Entrevista';
             document.getElementById('question-id').value = question.id;
@@ -427,7 +427,7 @@ async function handleQuestionSubmit(e) {
         let localQuestions = JSON.parse(localStorage.getItem(MOCK_QUESTIONS_KEY) || '[]');
 
         if (isEdit) {
-            localQuestions = localQuestions.map(q => q.id === id ? { ...q, ...payload } : q);
+            localQuestions = localQuestions.map(q => String(q.id) === String(id) ? { ...q, ...payload } : q);
             showToast('Pregunta de entrevista actualizada localmente.', 'success');
         } else {
             const newId = 'local-q-' + Math.random().toString(36).substr(2, 9);
@@ -479,7 +479,7 @@ async function deleteQuestion(id) {
         console.warn('Error en la API de eliminación. Eliminando de localStorage mock.');
         
         let localQuestions = JSON.parse(localStorage.getItem(MOCK_QUESTIONS_KEY) || '[]');
-        localQuestions = localQuestions.filter(q => q.id !== id);
+        localQuestions = localQuestions.filter(q => String(q.id) !== String(id));
         localStorage.setItem(MOCK_QUESTIONS_KEY, JSON.stringify(localQuestions));
 
         showToast('Pregunta de entrevista eliminada localmente.', 'success');
