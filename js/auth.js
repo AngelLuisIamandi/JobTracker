@@ -64,7 +64,7 @@ const Auth = {
     // Iniciar Sesión (Intenta PHP API primero, luego Mock Fallback)
     login: async function(email, password) {
         // Bypass inmediato si es el usuario demo para asegurar el funcionamiento del modo demostración
-        if (email === 'demo@demo.com' && password === 'password123') {
+        if (email === 'demo@demo.com' && password === 'JobTrackerDemoPass2026!') {
             return this.mockLogin(email, password);
         }
         try {
@@ -140,7 +140,7 @@ const Auth = {
         
         // Si no hay usuarios creados, creamos uno por defecto para facilitar pruebas
         if (users.length === 0) {
-            const defaultUser = { nombre: 'Usuario Demo', email: 'demo@demo.com', password: 'password123' };
+            const defaultUser = { nombre: 'Usuario Demo', email: 'demo@demo.com', password: 'JobTrackerDemoPass2026!' };
             users.push(defaultUser);
             localStorage.setItem('mock_users', JSON.stringify(users));
         }
@@ -151,7 +151,7 @@ const Auth = {
             this.saveSession(mockToken, { nombre: user.nombre, email: user.email });
             return { success: true, message: 'Sesión iniciada con usuario simulado.' };
         } else {
-            return { success: false, message: 'Correo o contraseña incorrectos en base de datos local (Prueba con demo@demo.com / password123).' };
+            return { success: false, message: 'Correo o contraseña incorrectos en base de datos local (Prueba con demo@demo.com / JobTrackerDemoPass2026!).' };
         }
     },
 
