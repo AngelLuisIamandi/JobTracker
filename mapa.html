@@ -135,6 +135,74 @@
                         </div>
                     </div>
                 </div>
+
+                <!-- Filtros de Ofertas -->
+                <div class="accordion-item">
+                    <h2 class="accordion-header" id="heading-job-filters">
+                        <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapse-job-filters" aria-expanded="false" aria-controls="collapse-job-filters">
+                            <i class="bi bi-funnel-fill me-2 text-gradient-indigo" aria-hidden="true"></i>Filtros de Ofertas
+                        </button>
+                    </h2>
+                    <div id="collapse-job-filters" class="accordion-collapse collapse" aria-labelledby="heading-job-filters" data-bs-parent="#accordion-settings">
+                        <div class="accordion-body">
+                            <div class="d-flex flex-column gap-2">
+                                <!-- Búsqueda de Texto -->
+                                <div>
+                                    <label for="input-filter-search" class="form-label fs-8 mb-1">Buscar Empresa / Puesto / Dirección</label>
+                                    <div class="input-group input-group-sm">
+                                        <span class="input-group-text bg-dark border-secondary text-secondary" style="border-color: rgba(255,255,255,0.12) !important;"><i class="bi bi-search"></i></span>
+                                        <input type="text" class="form-control text-light bg-dark border-secondary" id="input-filter-search" placeholder="Ej: Google, Madrid..." style="border-color: rgba(255,255,255,0.12) !important;">
+                                    </div>
+                                </div>
+                                <!-- Rango de Fechas -->
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <label for="input-filter-date-from" class="form-label fs-8 mb-1">Desde Fecha</label>
+                                        <input type="date" class="form-control form-control-sm text-light bg-dark border-secondary" id="input-filter-date-from" style="color-scheme: dark; padding: 0.4rem 0.5rem; border-color: rgba(255,255,255,0.12) !important;">
+                                    </div>
+                                    <div class="col-6">
+                                        <label for="input-filter-date-to" class="form-label fs-8 mb-1">Hasta Fecha</label>
+                                        <input type="date" class="form-control form-control-sm text-light bg-dark border-secondary" id="input-filter-date-to" style="color-scheme: dark; padding: 0.4rem 0.5rem; border-color: rgba(255,255,255,0.12) !important;">
+                                    </div>
+                                </div>
+                                <!-- Estado y Modalidad -->
+                                <div class="row g-2">
+                                    <div class="col-6">
+                                        <label for="select-filter-status" class="form-label fs-8 mb-1">Estado</label>
+                                        <select id="select-filter-status" class="form-select form-select-sm text-light bg-dark border-secondary" style="padding: 0.4rem 0.5rem; border-color: rgba(255,255,255,0.12) !important;">
+                                            <option value="Todos">Todos</option>
+                                            <option value="Postulado">Postulado</option>
+                                            <option value="En proceso">En proceso</option>
+                                            <option value="Aceptado">Aceptado</option>
+                                            <option value="Rechazado">Rechazado</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-6">
+                                        <label for="select-filter-modality" class="form-label fs-8 mb-1">Modalidad</label>
+                                        <select id="select-filter-modality" class="form-select form-select-sm text-light bg-dark border-secondary" style="padding: 0.4rem 0.5rem; border-color: rgba(255,255,255,0.12) !important;">
+                                            <option value="Todos">Todos</option>
+                                            <option value="Presencial">Presencial</option>
+                                            <option value="Híbrido">Híbrido</option>
+                                            <option value="Remoto">Remoto</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <!-- Distancia Máxima -->
+                                <div>
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <label for="range-filter-distance" class="form-label fs-8 mb-0">Distancia de Trayecto</label>
+                                        <span id="range-filter-distance-val" class="fs-8 text-warning fw-semibold">Sin límite</span>
+                                    </div>
+                                    <input type="range" class="form-range" id="range-filter-distance" min="1" max="101" value="101" style="cursor: pointer;">
+                                </div>
+                                <!-- Botón Limpiar -->
+                                <button class="btn btn-premium-secondary btn-sm py-1.5 fs-8 w-100 mt-1" id="btn-reset-filters" type="button">
+                                    <i class="bi bi-arrow-counterclockwise me-1" aria-hidden="true"></i>Restablecer Filtros
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Mapped jobs (Presencial & Híbrido) -->

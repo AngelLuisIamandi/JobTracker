@@ -319,7 +319,7 @@ class JobTrackerCalendar {
             if (payload.tipo === 'Entrevista') {
                 let localOffers = JSON.parse(localStorage.getItem('job_tracker_offers') || '[]');
                 localOffers = localOffers.map(o => {
-                    if (o.id === payload.oferta_id) {
+                    if (String(o.id) === String(payload.oferta_id)) {
                         return { ...o, fecha_entrevista: payload.fecha, estado: 'En proceso' };
                     }
                     return o;
@@ -363,11 +363,15 @@ class JobTrackerCalendar {
         const offers = this.getOffers();
 
         // Obtener primer día de la semana del mes y número de días del mes
-        const firstDayIndex = new Date(year, month, 1).getDay(); // 0 = Domingo, 1 = Lunes...
+        const dayOfWeek = new Date(year, month, 1).getDay(); // 0 = Domingo, 1 = Lunes...
         const totalDays = new Date(year, month + 1, 0).getDate();
 
+        // Adaptar índice para que empiece en lunes (formato europeo)
+        // Lunes = 0, Martes = 1, ..., Domingo = 6
+        const emptyDaysCount = (dayOfWeek - 1 + 7) % 7;
+
         // Rellenar espacios vacíos del principio del mes
-        for (let i = 0; i < firstDayIndex; i++) {
+        for (let i = 0; i < emptyDaysCount; i++) {
             const emptyDay = document.createElement('div');
             emptyDay.className = 'calendar-day empty';
             this.daysGridEl.appendChild(emptyDay);
@@ -476,7 +480,7 @@ class JobTrackerCalendar {
             const evItem = document.createElement('div');
             
             // Buscar empresa asociada
-            const offer = offers.find(o => o.id === ev.oferta_id);
+            const offer = offers.find(o => String(o.id) === String(ev.oferta_id));
             const empresaName = offer ? offer.empresa : 'Empresa General';
 
             // Determinar estilo de borde e insignias
@@ -576,7 +580,7 @@ class JobTrackerCalendar {
                 // 2. Mostrar Entrevistas directas registradas en la oferta para ese día
                 dayInterviews.forEach(offer => {
                     // Solo si no hay ya un evento del calendario que asocie esta entrevista en esta fecha
-                    const isAlreadyInEvents = dayEvents.some(e => e.oferta_id === offer.id && e.tipo === 'Entrevista');
+                    const isAlreadyInEvents = dayEvents.some(e => String(e.oferta_id) === String(offer.id) && e.tipo === 'Entrevista');
                     if (!isAlreadyInEvents) {
                         const item = document.createElement('div');
                         item.className = 'event-item interview';
@@ -596,7 +600,7 @@ class JobTrackerCalendar {
 
                 // 3. Mostrar Eventos agendados del Calendario
                 dayEvents.forEach(ev => {
-                    const offer = offers.find(o => o.id === ev.oferta_id);
+                    const offer = offers.find(o => String(o.id) === String(ev.oferta_id));
                     const empresaName = offer ? offer.empresa : 'Empresa General';
 
                     let eventClass = 'meeting';

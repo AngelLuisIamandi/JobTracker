@@ -70,7 +70,9 @@ document.addEventListener('DOMContentLoaded', () => {
             updateJobDistances();
             recalculateActiveRoute();
         });
-    }    // Cargar perfil del usuario o iniciar geolocalización
+    }
+
+    // Cargar perfil del usuario o iniciar geolocalización
     loadUserProfile();
 
     // Listener para cambiar ubicación de inicio
@@ -78,6 +80,47 @@ document.addEventListener('DOMContentLoaded', () => {
     if (btnChangeStart) {
         btnChangeStart.addEventListener('click', () => {
             showFallbackLocationModal(true); // Habilitar modo cancelable
+        });
+    }
+
+    // --- Registro de Filtros de Ofertas ---
+    const searchInput = document.getElementById('input-filter-search');
+    const dateFromInput = document.getElementById('input-filter-date-from');
+    const dateToInput = document.getElementById('input-filter-date-to');
+    const statusSelect = document.getElementById('select-filter-status');
+    const modalitySelect = document.getElementById('select-filter-modality');
+    const distanceSlider = document.getElementById('range-filter-distance');
+    const distanceValText = document.getElementById('range-filter-distance-val');
+    const btnReset = document.getElementById('btn-reset-filters');
+
+    if (searchInput) searchInput.addEventListener('input', applyFilters);
+    if (dateFromInput) dateFromInput.addEventListener('change', applyFilters);
+    if (dateToInput) dateToInput.addEventListener('change', applyFilters);
+    if (statusSelect) statusSelect.addEventListener('change', applyFilters);
+    if (modalitySelect) modalitySelect.addEventListener('change', applyFilters);
+    
+    if (distanceSlider && distanceValText) {
+        distanceSlider.addEventListener('input', (e) => {
+            const val = parseInt(e.target.value);
+            if (val >= 101) {
+                distanceValText.textContent = 'Sin límite';
+            } else {
+                distanceValText.textContent = `${val} km`;
+            }
+            applyFilters();
+        });
+    }
+
+    if (btnReset) {
+        btnReset.addEventListener('click', () => {
+            if (searchInput) searchInput.value = '';
+            if (dateFromInput) dateFromInput.value = '';
+            if (dateToInput) dateToInput.value = '';
+            if (statusSelect) statusSelect.value = 'Todos';
+            if (modalitySelect) modalitySelect.value = 'Todos';
+            if (distanceSlider) distanceSlider.value = 101;
+            if (distanceValText) distanceValText.textContent = 'Sin límite';
+            applyFilters();
         });
     }
 });
@@ -403,7 +446,7 @@ async function loadJobsOnMap() {
         }
     }
 
-    renderJobs(offers);
+    renderJobs(offers, true);
 }
 
 // Crear pin SVG dinámico con color
@@ -423,8 +466,31 @@ function createCustomPin(color) {
 }
 
 // Renderizar ofertas en mapa y barra lateral
-function renderJobs(offers) {
-    allOffers = offers;
+function renderJobs(offers, isInitialLoad = false) {
+    if (isInitialLoad) {
+        allOffers = offers;
+    }
+
+    // Limpiar marcadores anteriores del mapa
+    Object.values(jobMarkers).forEach(marker => {
+        if (map && marker) {
+            map.removeLayer(marker);
+        }
+    });
+    jobMarkers = {};
+
+    // Limpiar la ruta activa si existe
+    if (activeRouteLayer) {
+        map.removeLayer(activeRouteLayer);
+        activeRouteLayer = null;
+    }
+    currentRouteJobId = null;
+
+    // Si el empleo clicado ya no está en el conjunto filtrado, desmarcarlo
+    if (clickedJobId && !offers.some(j => j.id == clickedJobId)) {
+        clickedJobId = null;
+    }
+
     const mappedJobsList = document.getElementById('mapped-jobs-list');
     const remoteJobsList = document.getElementById('remote-jobs-list');
 
@@ -432,8 +498,8 @@ function renderJobs(offers) {
     remoteJobsList.innerHTML = '';
 
     if (offers.length === 0) {
-        mappedJobsList.innerHTML = '<div class="text-center text-secondary py-3 fs-7">No tienes ofertas registradas.</div>';
-        remoteJobsList.innerHTML = '<div class="text-center text-secondary py-3 fs-7">No tienes ofertas en remoto.</div>';
+        mappedJobsList.innerHTML = '<div class="text-center text-secondary py-3 fs-7">No se encontraron ofertas.</div>';
+        remoteJobsList.innerHTML = '<div class="text-center text-secondary py-3 fs-7">No se encontraron ofertas en remoto.</div>';
         return;
     }
 
@@ -497,8 +563,8 @@ function renderJobs(offers) {
     // Centrar mapa si hay marcadores pintados
     if (hasMappedJobs) {
         map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
-        // Calcular distancias y mostrarlas en la barra lateral
-        if (userLocation) {
+        // Calcular distancias y mostrarlas en la barra lateral solo si es la carga inicial
+        if (userLocation && isInitialLoad) {
             updateJobDistances();
         }
     }
@@ -516,6 +582,20 @@ function createJobCard(job, isRemote) {
 
     const formattedSalary = job.salario ? `${parseFloat(job.salario).toLocaleString('es-ES')} €` : 'No esp.';
 
+    // Si ya tiene distancia calculada en la caché, renderizarla síncronamente
+    let distanceContentHtml = '';
+    if (!isRemote && job.calculatedDistance !== undefined && job.calculatedDistance !== null) {
+        const monthlyCost = calculateMonthlyFuelCost(job.calculatedDistance, job.modalidad);
+        const iconClass = job.distanceType === 'straight' ? 'bi-signpost-split' : 'bi-car-front-fill';
+        const prefix = job.distanceType === 'straight' ? '~' : '';
+        distanceContentHtml = `
+            <div class="d-flex flex-column align-items-end">
+                <span><i class="bi ${iconClass} me-1"></i>${prefix}${job.calculatedDistance.toFixed(1)} km</span>
+                <span class="fs-9 text-success fw-normal mt-0.5"><i class="bi bi-currency-euro me-0.5"></i>${prefix}${monthlyCost.toFixed(2)}/mes</span>
+            </div>
+        `;
+    }
+
     card.innerHTML = `
         <div class="d-flex justify-content-between align-items-start">
             <div style="max-width: 70%;">
@@ -524,7 +604,7 @@ function createJobCard(job, isRemote) {
             </div>
             <div class="d-flex flex-column align-items-end gap-1">
                 <span class="badge ${badgeClass}" style="font-size: 0.65rem; text-transform: none;">${job.modalidad || 'Presencial'}</span>
-                ${!isRemote ? `<span id="distance-${job.id}" class="fs-9 text-warning fw-semibold mt-1"></span>` : ''}
+                ${!isRemote ? `<span id="distance-${job.id}" class="fs-9 text-warning fw-semibold mt-1">${distanceContentHtml}</span>` : ''}
             </div>
         </div>
         <div class="d-flex justify-content-between map-job-card-details mt-2">
@@ -786,9 +866,11 @@ async function updateJobDistances() {
                 geolocalizedJobs.forEach((job, index) => {
                     const distanceMeters = distancesArray[index + 1];
                     const distSpan = document.getElementById(`distance-${job.id}`);
-                    if (distSpan) {
-                        if (distanceMeters !== null && distanceMeters !== undefined) {
-                            const distanceKm = parseFloat((distanceMeters / 1000).toFixed(1));
+                    if (distanceMeters !== null && distanceMeters !== undefined) {
+                        const distanceKm = parseFloat((distanceMeters / 1000).toFixed(1));
+                        job.calculatedDistance = distanceKm;
+                        job.distanceType = 'route';
+                        if (distSpan) {
                             const monthlyCost = calculateMonthlyFuelCost(distanceKm, job.modalidad);
                             distSpan.innerHTML = `
                                 <div class="d-flex flex-column align-items-end">
@@ -796,9 +878,13 @@ async function updateJobDistances() {
                                     <span class="fs-9 text-success fw-normal mt-0.5"><i class="bi bi-currency-euro me-0.5"></i>${monthlyCost.toFixed(2)}/mes</span>
                                 </div>
                             `;
-                        } else {
-                            // Fallback Haversine
-                            const straightDist = calculateHaversineDistance(userLocation, { lat: job.lat, lon: job.lon });
+                        }
+                    } else {
+                        // Fallback Haversine
+                        const straightDist = calculateHaversineDistance(userLocation, { lat: job.lat, lon: job.lon });
+                        job.calculatedDistance = straightDist;
+                        job.distanceType = 'straight';
+                        if (distSpan) {
                             const monthlyCost = calculateMonthlyFuelCost(straightDist, job.modalidad);
                             distSpan.innerHTML = `
                                 <div class="d-flex flex-column align-items-end">
@@ -816,9 +902,11 @@ async function updateJobDistances() {
     } catch (err) {
         console.warn('Fallo al obtener distancias de OSRM. Usando fallback de Haversine (Línea recta):', err);
         geolocalizedJobs.forEach(job => {
+            const straightDist = calculateHaversineDistance(userLocation, { lat: job.lat, lon: job.lon });
+            job.calculatedDistance = straightDist;
+            job.distanceType = 'straight';
             const distSpan = document.getElementById(`distance-${job.id}`);
             if (distSpan) {
-                const straightDist = calculateHaversineDistance(userLocation, { lat: job.lat, lon: job.lon });
                 const monthlyCost = calculateMonthlyFuelCost(straightDist, job.modalidad);
                 distSpan.innerHTML = `
                     <div class="d-flex flex-column align-items-end">
@@ -877,4 +965,64 @@ function getBasicPopupContent(job) {
             <div class="text-secondary fs-9 mt-1"><i class="bi bi-geo-alt-fill text-danger me-1"></i>${job.ubicacion || 'Sin dirección'}</div>
         </div>
     `;
+}
+
+// Aplicar filtros de la barra lateral
+function applyFilters() {
+    const searchQuery = document.getElementById('input-filter-search')?.value.trim().toLowerCase();
+    const dateFromVal = document.getElementById('input-filter-date-from')?.value; // YYYY-MM-DD
+    const dateToVal = document.getElementById('input-filter-date-to')?.value; // YYYY-MM-DD
+    const statusVal = document.getElementById('select-filter-status')?.value;
+    const modalityVal = document.getElementById('select-filter-modality')?.value;
+    const maxDistanceVal = parseFloat(document.getElementById('range-filter-distance')?.value) || 101;
+
+    const filtered = allOffers.filter(job => {
+        // 1. Filtro de Texto
+        if (searchQuery) {
+            const puesto = (job.puesto || '').toLowerCase();
+            const empresa = (job.empresa || '').toLowerCase();
+            const ubicacion = (job.ubicacion || '').toLowerCase();
+            if (!puesto.includes(searchQuery) && !empresa.includes(searchQuery) && !ubicacion.includes(searchQuery)) {
+                return false;
+            }
+        }
+
+        // 2. Rango de Fechas
+        if (dateFromVal || dateToVal) {
+            if (!job.fecha_postulacion) {
+                return false;
+            }
+            if (dateFromVal && job.fecha_postulacion < dateFromVal) {
+                return false;
+            }
+            if (dateToVal && job.fecha_postulacion > dateToVal) {
+                return false;
+            }
+        }
+
+        // 3. Estado
+        if (statusVal && statusVal !== 'Todos') {
+            if (job.estado !== statusVal) return false;
+        }
+
+        // 4. Modalidad
+        if (modalityVal && modalityVal !== 'Todos') {
+            if (job.modalidad !== modalityVal) return false;
+        }
+
+        // 5. Distancia Máxima
+        if (maxDistanceVal < 101) {
+            // Si hay límite de distancia, los puestos Remotos se excluyen porque no tienen desplazamiento físico
+            if (job.modalidad === 'Remoto') {
+                return false;
+            }
+            if (job.calculatedDistance === undefined || job.calculatedDistance === null || job.calculatedDistance > maxDistanceVal) {
+                return false;
+            }
+        }
+
+        return true;
+    });
+
+    renderJobs(filtered, false);
 }

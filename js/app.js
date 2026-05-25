@@ -451,12 +451,12 @@ function renderOffersTable() {
             <td>
                 <span class="badge badge-status ${badgeClass}">${offer.estado}</span>
             </td>
-            <td class="text-end" onclick="event.stopPropagation()">
+            <td class="text-end">
                 <div class="btn-group">
-                    <button class="btn btn-sm btn-outline-secondary border-0 py-1" onclick="openOfferModal('${offer.id}')" title="Editar">
+                    <button class="btn btn-sm btn-outline-secondary border-0 py-1 btn-edit-offer" title="Editar">
                         <i class="bi bi-pencil text-warning" style="font-size: 1.1rem;"></i>
                     </button>
-                    <button class="btn btn-sm btn-outline-secondary border-0 py-1" onclick="confirmDelete('${offer.id}')" title="Eliminar">
+                    <button class="btn btn-sm btn-outline-secondary border-0 py-1 btn-delete-offer" title="Eliminar">
                         <i class="bi bi-trash text-danger" style="font-size: 1.1rem;"></i>
                     </button>
                 </div>
@@ -466,6 +466,17 @@ function renderOffersTable() {
         // Click en fila para abrir detalle
         tr.addEventListener('click', () => {
             openDetailModal(offer.id);
+        });
+
+        // Click listeners programáticos para botones de la fila
+        tr.querySelector('.btn-edit-offer').addEventListener('click', (e) => {
+            e.stopPropagation();
+            openOfferModal(offer.id);
+        });
+
+        tr.querySelector('.btn-delete-offer').addEventListener('click', (e) => {
+            e.stopPropagation();
+            confirmDelete(offer.id);
         });
 
         tbody.appendChild(tr);
@@ -491,11 +502,11 @@ function renderOffersTable() {
                     <span><i class="bi bi-calendar-event me-1"></i>${formattedDate}</span>
                     <span><i class="bi bi-currency-euro me-1"></i>${formattedSalary}</span>
                 </div>
-                <div class="d-flex justify-content-end gap-2" onclick="event.stopPropagation()">
-                    <button class="btn btn-sm btn-premium-secondary py-1 px-2 fs-8" onclick="openOfferModal('${offer.id}')" aria-label="Editar postulación de ${offer.empresa}">
+                <div class="d-flex justify-content-end gap-2">
+                    <button class="btn btn-sm btn-premium-secondary py-1 px-2 fs-8 btn-edit-offer-mobile" aria-label="Editar postulación de ${offer.empresa}">
                         <i class="bi bi-pencil text-warning me-1"></i>Editar
                     </button>
-                    <button class="btn btn-sm btn-premium-secondary py-1 px-2 fs-8" onclick="confirmDelete('${offer.id}')" aria-label="Eliminar postulación de ${offer.empresa}">
+                    <button class="btn btn-sm btn-premium-secondary py-1 px-2 fs-8 btn-delete-offer-mobile" aria-label="Eliminar postulación de ${offer.empresa}">
                         <i class="bi bi-trash text-danger me-1"></i>Borrar
                     </button>
                 </div>
@@ -503,6 +514,17 @@ function renderOffersTable() {
             
             card.addEventListener('click', () => {
                 openDetailModal(offer.id);
+            });
+
+            // Click listeners programáticos para botones de la tarjeta móvil
+            card.querySelector('.btn-edit-offer-mobile').addEventListener('click', (e) => {
+                e.stopPropagation();
+                openOfferModal(offer.id);
+            });
+
+            card.querySelector('.btn-delete-offer-mobile').addEventListener('click', (e) => {
+                e.stopPropagation();
+                confirmDelete(offer.id);
             });
             
             cardsContainer.appendChild(card);
@@ -884,3 +906,4 @@ function showLoader(visible) {
 window.openOfferModal = openOfferModal;
 window.openDetailModal = openDetailModal;
 window.confirmDelete = confirmDelete;
+window.AppState = AppState;

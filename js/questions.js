@@ -170,7 +170,21 @@ async function fetchOffersList() {
         const response = await fetch(`${API_BASE_QUESTIONS}/applications.php`, { headers });
         if (response.ok) {
             const data = await response.json();
-            return data || [];
+            // Mapear los datos de BD a las claves que espera el frontend
+            return (data || []).map(o => ({
+                id: o.id,
+                empresa: o.company,
+                puesto: o.title,
+                fecha_postulacion: o.date_applied,
+                estado: o.status,
+                salario: o.salario || null,
+                enlace: o.url || '',
+                notas: o.description || '',
+                modalidad: o.modalidad || 'Presencial',
+                ubicacion: o.ubicacion_nombre || '',
+                lat: o.latitud ? parseFloat(o.latitud) : null,
+                lon: o.longitud ? parseFloat(o.longitud) : null
+            }));
         } else {
             throw new Error('Error al obtener ofertas de la API');
         }
@@ -194,7 +208,16 @@ async function loadQuestions() {
         const response = await fetch(API_QUESTIONS_URLS.list, { headers });
         if (response.ok) {
             const data = await response.json();
-            AppStateQuestions.questions = data || [];
+            // Mapear los datos de la base de datos a las claves que espera el frontend
+            AppStateQuestions.questions = (data || []).map(q => ({
+                id: q.id,
+                application_id: q.application_id,
+                category: q.category,
+                difficulty: q.difficulty,
+                question: q.question_text,
+                answer: q.answer_text,
+                empresa: q.empresa || ''
+            }));
         } else {
             throw new Error('Servidor de preguntas no disponible o no implementado aún.');
         }
@@ -312,16 +335,26 @@ function renderQuestionsAccordion() {
                     <div class="prepared-answer-container" style="white-space: pre-wrap;">${q.answer}</div>
                     
                     <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top border-secondary" style="border-color: rgba(255,255,255,0.06) !important;">
-                        <button id="btn-edit-q-${q.id}" type="button" class="btn btn-premium-secondary btn-sm fs-7 py-1 px-3" onclick="openQuestionModal('${q.id}')">
+                        <button id="btn-edit-q-${q.id}" type="button" class="btn btn-premium-secondary btn-sm fs-7 py-1 px-3 btn-edit-question">
                             <i class="bi bi-pencil me-1" aria-hidden="true"></i>Editar
                         </button>
-                        <button id="btn-delete-q-${q.id}" type="button" class="btn btn-premium-danger btn-sm fs-7 py-1 px-3" onclick="confirmDeleteQuestion('${q.id}')">
+                        <button id="btn-delete-q-${q.id}" type="button" class="btn btn-premium-danger btn-sm fs-7 py-1 px-3 btn-delete-question">
                             <i class="bi bi-trash me-1" aria-hidden="true"></i>Eliminar
                         </button>
                     </div>
                 </div>
             </div>
         `;
+
+        // Asignación de escuchadores de eventos programáticos
+        item.querySelector('.btn-edit-question').addEventListener('click', () => {
+            openQuestionModal(q.id);
+        });
+
+        item.querySelector('.btn-delete-question').addEventListener('click', () => {
+            confirmDeleteQuestion(q.id);
+        });
+
         accordion.appendChild(item);
     });
 }
