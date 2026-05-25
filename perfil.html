@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Configura tu perfil de usuario y gestiona tu cuenta en JobTracker.">
+    <title>Mi Perfil | JobTracker</title>
+    <!-- Google Fonts Outfit -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="favicon.png">
+    <!-- Auth JS (Immediate session check in the head) -->
+    <script src="js/auth.js"></script>
+    <script>
+        Auth.checkPageAuth(true);
+    </script>
+</head>
+<body>
+
+    <!-- Navbar Premium -->
+    <nav class="navbar navbar-expand-lg navbar-dark premium-navbar sticky-top">
+        <div class="container">
+            <a class="navbar-brand d-flex align-items-center" id="nav-brand-logo" href="index.html">
+                <i class="bi bi-briefcase-fill me-2 text-gradient-indigo" aria-hidden="true"></i>
+                <span class="fw-bold">JobTracker</span>
+            </a>
+            <button class="navbar-toggler" type="button" id="btn-navbar-toggle" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link" id="nav-link-dashboard" href="index.html"><i class="bi bi-grid-1x2-fill me-1" aria-hidden="true"></i> Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="nav-link-busqueda" href="busqueda.html"><i class="bi bi-compass-fill me-1" aria-hidden="true"></i> Sitios Frecuentes</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="nav-link-mapa" href="mapa.html"><i class="bi bi-map-fill me-1" aria-hidden="true"></i> Mapa de Empleos</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="nav-link-preguntas" href="preguntas.html"><i class="bi bi-question-circle-fill me-1" aria-hidden="true"></i> Preguntas de Entrevista</a>
+                    </li>
+                </ul>
+                <div class="d-flex align-items-center">
+                    <div class="text-light me-3 d-none d-md-block">
+                        <span class="text-secondary fs-7">Bienvenido,</span>
+                        <a href="perfil.html" class="text-light text-decoration-none fw-bold" id="navbar-username-link" style="transition: color 0.2s;" onmouseover="this.style.color='var(--accent-indigo)'" onmouseout="this.style.color=''" title="Configurar Perfil">
+                            <span id="navbar-username">Usuario</span> <i class="bi bi-person-gear ms-1" aria-hidden="true"></i>
+                        </a>
+                    </div>
+                    <button class="btn btn-premium-secondary py-2 px-3 fs-7" id="btn-logout">
+                        <i class="bi bi-box-arrow-right me-1 text-danger" aria-hidden="true"></i> Salir
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content Container -->
+    <main class="container my-5" style="max-width: 650px;">
+        <!-- Header Section -->
+        <header class="mb-4 animate-fade-in">
+            <h1 class="h3 fw-bold text-light mb-1">
+                <i class="bi bi-person-fill text-gradient-indigo me-2" aria-hidden="true"></i>Configuración de Cuenta
+            </h1>
+            <p class="text-secondary fs-7">
+                Actualiza tu nombre de perfil o elimina tu cuenta de JobTracker.
+            </p>
+        </header>
+
+        <!-- Profile Form Card -->
+        <section class="glass-container p-4 mb-4 animate-fade-in" aria-labelledby="profile-settings-title">
+            <h2 id="profile-settings-title" class="fs-5 fw-bold text-light mb-3">
+                <i class="bi bi-person-lines-fill text-secondary me-2" aria-hidden="true"></i>Datos del Perfil
+            </h2>
+            <form id="form-profile">
+                <div class="mb-3">
+                    <label for="input-profile-username" class="form-label text-light fs-7">Nombre de Usuario</label>
+                    <input type="text" class="form-control" id="input-profile-username" placeholder="Tu nombre o alias" required>
+                </div>
+                <div class="mb-4">
+                    <label for="input-profile-email" class="form-label text-secondary fs-7">Correo Electrónico (No modificable)</label>
+                    <input type="email" class="form-control bg-dark border-secondary text-secondary" id="input-profile-email" readonly style="opacity: 0.65; cursor: not-allowed;">
+                </div>
+                <button type="submit" class="btn btn-premium w-100" id="btn-save-profile">
+                    <i class="bi bi-check2-circle me-1" aria-hidden="true"></i>Guardar Cambios
+                </button>
+            </form>
+        </section>
+
+        <!-- Danger Zone Card -->
+        <section class="glass-container p-4 animate-fade-in" style="border: 1px solid rgba(244, 63, 94, 0.25) !important; background: rgba(244, 63, 94, 0.04) !important;" aria-labelledby="danger-zone-title">
+            <h2 id="danger-zone-title" class="fs-5 fw-bold text-danger mb-2">
+                <i class="bi bi-exclamation-triangle-fill me-2" aria-hidden="true"></i>Zona Peligrosa
+            </h2>
+            <p class="text-secondary fs-7 mb-3">
+                Al eliminar tu cuenta se borrarán de forma definitiva y permanente todos tus datos, incluyendo ofertas de empleo, eventos en agenda, banco de preguntas de entrevistas y portales de búsqueda guardados. Esta acción no se puede deshacer.
+            </p>
+            <button class="btn btn-outline-danger w-100 py-2 fs-7 fw-semibold" id="btn-delete-account-trigger" data-bs-toggle="modal" data-bs-target="#modal-delete-account">
+                <i class="bi bi-trash3-fill me-1" aria-hidden="true"></i>Eliminar mi cuenta definitivamente
+            </button>
+        </section>
+    </main>
+
+    <!-- Modal de confirmación de eliminación definitiva -->
+    <div class="modal fade" id="modal-delete-account" tabindex="-1" aria-labelledby="modalDeleteTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border: 1px solid rgba(244, 63, 94, 0.3) !important;">
+                <div class="modal-header">
+                    <h2 class="modal-title fw-bold text-danger fs-5" id="modalDeleteTitle">
+                        <i class="bi bi-exclamation-triangle-fill me-2" aria-hidden="true"></i>¿Eliminar cuenta permanentemente?
+                    </h2>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="form-delete-account">
+                    <div class="modal-body p-4">
+                        <p class="text-secondary fs-7">
+                            Esta acción borrará de manera inmediata e irreversible todas tus ofertas de trabajo, eventos del calendario y configuraciones de tu cuenta.
+                        </p>
+                        <p class="text-light fs-7 fw-semibold mb-3">
+                            Por seguridad, escribe <span class="text-danger">ELIMINAR</span> en el campo inferior para confirmar:
+                        </p>
+                        <div class="mb-3">
+                            <label for="input-delete-confirm" class="visually-hidden">Escribe ELIMINAR para confirmar</label>
+                            <input type="text" class="form-control text-center fw-bold border-secondary bg-dark text-light" id="input-delete-confirm" placeholder="Escribe ELIMINAR" required autocomplete="off">
+                        </div>
+                    </div>
+                    <div class="modal-footer d-flex gap-2 justify-content-between">
+                        <button type="button" class="btn btn-premium-secondary flex-grow-1" data-bs-dismiss="modal">
+                            Cancelar
+                        </button>
+                        <button type="submit" class="btn btn-danger flex-grow-1" id="btn-delete-account-confirm" disabled>
+                            Borrar Cuenta
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <!-- Modal de Políticas (Compartido) -->
+    <div class="modal fade" id="modal-policies" tabindex="-1" aria-labelledby="modalPoliciesTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title fw-bold text-light fs-5" id="modalPoliciesTitle">Política de Privacidad</h2>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4" style="max-height: 60vh; overflow-y: auto;">
+                    <div id="policy-content" class="text-secondary fs-7">
+                        <!-- Cargar contenido dinámicamente -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-premium-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer Premium -->
+    <footer class="py-4 mt-5 border-top border-secondary" style="border-color: rgba(255, 255, 255, 0.08) !important;">
+        <div class="container">
+            <div class="row align-items-center g-3">
+                <div class="col-md-6 text-center text-md-start text-secondary fs-7">
+                    <p class="mb-0">&copy; 2026 JobTracker. Todos los derechos reservados.</p>
+                    <p class="mb-0 text-muted fs-8">Desarrollado por <a href="https://www.linkedin.com/in/angel-luis-iamandi/" target="_blank" rel="noopener" class="text-gradient-cyan text-decoration-none fw-semibold"><i class="bi bi-linkedin me-1"></i>Angel Luis Iamandi</a></p>
+                </div>
+                <div class="col-md-6 text-center text-md-end fs-7">
+                    <a href="#" class="text-secondary text-decoration-none me-3 hover-indigo policy-link" data-policy="privacidad">Privacidad</a>
+                    <a href="#" class="text-secondary text-decoration-none me-3 hover-indigo policy-link" data-policy="terminos">Términos</a>
+                    <a href="#" class="text-secondary text-decoration-none me-3 hover-indigo policy-link" data-policy="cookies">Cookies</a>
+                    <a href="#" class="text-secondary text-decoration-none hover-indigo policy-link" data-policy="legal">Aviso Legal</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Lógica de políticas en el footer
+        document.querySelectorAll('.policy-link').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const policyType = link.getAttribute('data-policy');
+                const modalTitle = document.getElementById('modalPoliciesTitle');
+                const modalBody = document.getElementById('policy-content');
+                
+                let title = '';
+                let content = '';
+                
+                if (policyType === 'privacidad') {
+                    title = 'Política de Privacidad';
+                    content = '<h6>1. Tratamiento de Datos</h6><p>En JobTracker, nos tomamos muy en serio la privacidad de tus datos. La información sobre tus postulaciones de empleo y notas asociadas se almacena de forma segura en nuestro servidor o en tu almacenamiento local según corresponda.</p><h6>2. Uso de la Información</h6><p>Los datos recopilados (títulos de empleo, empresas, ubicaciones de partida) se utilizan exclusivamente para facilitarte el seguimiento de tus candidaturas, calcular distancias de trayecto estimadas y consumos de combustible.</p><h6>3. Cookies y Almacenamiento Local</h6><p>Utilizamos almacenamiento local (localStorage) en tu navegador para asegurar el funcionamiento sin conexión y para mantener iniciada tu sesión de forma segura.</p>';
+                } else if (policyType === 'terminos') {
+                    title = 'Términos de Servicio';
+                    content = '<h6>1. Uso del Servicio</h6><p>JobTracker es una plataforma personal diseñada para la organización y seguimiento del proceso de búsqueda de empleo. Queda prohibido su uso para fines ilícitos o de forma automatizada mediante scripts no autorizados.</p><h6>2. Exclusiones de Responsabilidad</h6><p>La aplicación utiliza APIs públicas externas (como OpenStreetMap, Nominatim y OSRM) para calcular rutas y geolocalizar ofertas. No nos hacemos responsables de las posibles discrepancias en tiempos de conducción o cálculo de distancias de dicha herramientas de terceros.</p>';
+                } else if (policyType === 'cookies') {
+                    title = 'Política de Cookies';
+                    content = '<h6>1. ¿Qué cookies utilizamos?</h6><p>JobTracker no utiliza cookies de seguimiento ni cookies de terceros para publicidad. Únicamente utilizamos tecnologías de almacenamiento local del navegador (como localStorage) para almacenar los tokens de inicio de sesión de usuario y la persistencia temporal de datos en modo offline.</p>';
+                } else if (policyType === 'legal') {
+                    title = 'Aviso Legal';
+                    content = '<h6>1. Titularidad del Sitio</h6><p>En cumplimiento de las normativas de servicios de la sociedad de la información, se informa que esta plataforma es una herramienta privada de gestión de candidaturas de empleo.</p><h6>2. Enlaces a Terceros</h6><p>Esta aplicación contiene enlaces directos a portales externos de empleo (LinkedIn, InfoJobs, etc.). El acceso y registro en dichos portales se rigen bajo los términos propios de cada uno de ellos.</p>';
+                }
+                
+                modalTitle.textContent = title;
+                modalBody.innerHTML = content;
+                
+                const modal = new bootstrap.Modal(document.getElementById('modal-policies'));
+                modal.show();
+            });
+        });
+    </script>
+
+    <!-- Toast Notifications Container -->
+    <div id="toast-container" class="toast-container-custom"></div>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Profile Javascript -->
+    <script src="js/profile.js"></script>
+</body>
+</html>

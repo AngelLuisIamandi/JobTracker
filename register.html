@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Regístrate en JobTracker de forma gratuita y empieza a organizar tus candidaturas y entrevistas de trabajo.">
+    <title>Crear Cuenta | JobTracker</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="favicon.png">
+    <!-- Auth JS (para chequear estado antes de cargar la vista) -->
+    <script src="js/auth.js"></script>
+    <script>
+        // Redirigir al dashboard si ya hay sesión activa
+        Auth.checkPageAuth(false);
+    </script>
+</head>
+<body>
+
+    <main class="auth-wrapper">
+        <div class="glass-container auth-card">
+            <div class="text-center mb-4">
+                <div class="auth-logo mb-2">
+                    <i class="bi bi-briefcase-fill me-2"></i>JobTracker
+                </div>
+                <h1 class="fw-bold fs-4">Crea tu cuenta</h1>
+                <p class="text-secondary text-muted fs-7">Comienza a registrar y optimizar tus postulaciones laborales</p>
+            </div>
+
+            <form id="form-register" novalidate>
+                <!-- Nombre Completo -->
+                <div class="mb-3">
+                    <label for="register-name" class="form-label">Nombre Completo</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-transparent border-end-0 text-secondary" style="border-color: var(--border-color) !important;">
+                            <i class="bi bi-person"></i>
+                        </span>
+                        <input type="text" class="form-control border-start-0" id="register-name" placeholder="Tu Nombre Completo" required>
+                    </div>
+                </div>
+
+                <!-- Correo Electrónico -->
+                <div class="mb-3">
+                    <label for="register-email" class="form-label">Correo Electrónico</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-transparent border-end-0 text-secondary" style="border-color: var(--border-color) !important;">
+                            <i class="bi bi-envelope"></i>
+                        </span>
+                        <input type="email" class="form-control border-start-0" id="register-email" placeholder="nombre@ejemplo.com" required>
+                    </div>
+                </div>
+
+                <!-- Contraseña -->
+                <div class="mb-3">
+                    <label for="register-password" class="form-label">Contraseña</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-transparent border-end-0 text-secondary" style="border-color: var(--border-color) !important;">
+                            <i class="bi bi-lock"></i>
+                        </span>
+                        <input type="password" class="form-control border-start-0 border-end-0" id="register-password" placeholder="••••••••" required>
+                        <button class="btn btn-outline-secondary border-start-0 text-secondary" type="button" id="toggle-password" aria-label="Mostrar u ocultar contraseña" style="border-color: var(--border-color) !important;">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Confirmar Contraseña -->
+                <div class="mb-4">
+                    <label for="register-confirm-password" class="form-label">Confirmar Contraseña</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-transparent border-end-0 text-secondary" style="border-color: var(--border-color) !important;">
+                            <i class="bi bi-lock-fill"></i>
+                        </span>
+                        <input type="password" class="form-control border-start-0 border-end-0" id="register-confirm-password" placeholder="••••••••" required>
+                        <button class="btn btn-outline-secondary border-start-0 text-secondary" type="button" id="toggle-confirm-password" aria-label="Mostrar u ocultar confirmación de contraseña" style="border-color: var(--border-color) !important;">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Botón Registrar -->
+                <button type="submit" class="btn btn-premium w-100 mb-3" id="btn-register-submit">
+                    <span id="spinner-register" class="spinner-border spinner-border-sm me-2 d-none" role="status" aria-hidden="true"></span>
+                    Crear Cuenta
+                </button>
+
+                <!-- Ir a Login -->
+                <div class="text-center text-secondary fs-7">
+                    ¿Ya tienes una cuenta? 
+                    <a href="login.html" class="text-gradient-indigo fw-bold text-decoration-none" id="link-login">Inicia sesión</a>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <!-- Footer Premium -->
+    <footer class="py-4 mt-5 border-top border-secondary" style="border-color: rgba(255, 255, 255, 0.08) !important;">
+        <div class="container">
+            <div class="row align-items-center g-3">
+                <div class="col-md-6 text-center text-md-start text-secondary fs-7">
+                    <p class="mb-0">&copy; 2026 JobTracker. Todos los derechos reservados.</p>
+                    <p class="mb-0 text-muted fs-8">Desarrollado por <a href="https://www.linkedin.com/in/angel-luis-iamandi/" target="_blank" rel="noopener" class="text-gradient-cyan text-decoration-none fw-semibold"><i class="bi bi-linkedin me-1"></i>Angel Luis Iamandi</a></p>
+                </div>
+                <div class="col-md-6 text-center text-md-end fs-7">
+                    <a href="#" class="text-secondary text-decoration-none me-3 hover-indigo policy-link" data-policy="privacidad">Privacidad</a>
+                    <a href="#" class="text-secondary text-decoration-none me-3 hover-indigo policy-link" data-policy="terminos">Términos</a>
+                    <a href="#" class="text-secondary text-decoration-none me-3 hover-indigo policy-link" data-policy="cookies">Cookies</a>
+                    <a href="#" class="text-secondary text-decoration-none hover-indigo policy-link" data-policy="legal">Aviso Legal</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Modal de Políticas (Compartido) -->
+    <div class="modal fade" id="modal-policies" tabindex="-1" aria-labelledby="modalPoliciesTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title fw-bold text-light fs-5" id="modalPoliciesTitle">Política de Privacidad</h2>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4" style="max-height: 60vh; overflow-y: auto;">
+                    <div id="policy-content" class="text-secondary fs-7">
+                        <!-- Cargar contenido dinámicamente -->
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-premium-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Lógica de la página -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('form-register');
+            const nameInput = document.getElementById('register-name');
+            const emailInput = document.getElementById('register-email');
+            const passwordInput = document.getElementById('register-password');
+            const confirmPasswordInput = document.getElementById('register-confirm-password');
+            const togglePasswordBtn = document.getElementById('toggle-password');
+            const toggleConfirmPasswordBtn = document.getElementById('toggle-confirm-password');
+            const btnSubmit = document.getElementById('btn-register-submit');
+            const spinner = document.getElementById('spinner-register');
+
+            // Mostrar/Ocultar Contraseña
+            togglePasswordBtn.addEventListener('click', () => {
+                const isPassword = passwordInput.getAttribute('type') === 'password';
+                passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
+                togglePasswordBtn.querySelector('i').className = isPassword ? 'bi bi-eye-slash' : 'bi bi-eye';
+            });
+
+            // Mostrar/Ocultar Confirmación
+            toggleConfirmPasswordBtn.addEventListener('click', () => {
+                const isPassword = confirmPasswordInput.getAttribute('type') === 'password';
+                confirmPasswordInput.setAttribute('type', isPassword ? 'text' : 'password');
+                toggleConfirmPasswordBtn.querySelector('i').className = isPassword ? 'bi bi-eye-slash' : 'bi bi-eye';
+            });
+
+            // Enviar Formulario
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                // Limpieza de clases de validación
+                nameInput.classList.remove('is-invalid');
+                emailInput.classList.remove('is-invalid');
+                passwordInput.classList.remove('is-invalid');
+                confirmPasswordInput.classList.remove('is-invalid');
+
+                // Validaciones básicas
+                let hasError = false;
+
+                if (!nameInput.value.trim()) {
+                    nameInput.classList.add('is-invalid');
+                    hasError = true;
+                }
+                if (!emailInput.value.trim()) {
+                    emailInput.classList.add('is-invalid');
+                    hasError = true;
+                }
+                if (passwordInput.value.length < 6) {
+                    showToast('La contraseña debe tener al menos 6 caracteres.', 'error');
+                    passwordInput.classList.add('is-invalid');
+                    hasError = true;
+                }
+                if (passwordInput.value !== confirmPasswordInput.value) {
+                    showToast('Las contraseñas no coinciden.', 'error');
+                    confirmPasswordInput.classList.add('is-invalid');
+                    hasError = true;
+                }
+
+                if (hasError) return;
+
+                // Iniciar spinner
+                btnSubmit.disabled = true;
+                spinner.classList.remove('d-none');
+
+                try {
+                    const result = await Auth.register(nameInput.value, emailInput.value, passwordInput.value);
+                    if (result.success) {
+                        showToast(result.message, 'success');
+                        setTimeout(() => {
+                            window.location.href = 'login.html';
+                        }, 1500);
+                    } else {
+                        showToast(result.message, 'error');
+                        btnSubmit.disabled = false;
+                        spinner.classList.add('d-none');
+                    }
+                } catch (error) {
+                    showToast('Ocurrió un error inesperado al intentar registrar el usuario.', 'error');
+                    btnSubmit.disabled = false;
+                    spinner.classList.add('d-none');
+                }
+            });
+
+            // Lógica de políticas en el footer
+            document.querySelectorAll('.policy-link').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const policyType = link.getAttribute('data-policy');
+                    const modalTitle = document.getElementById('modalPoliciesTitle');
+                    const modalBody = document.getElementById('policy-content');
+                    
+                    let title = '';
+                    let content = '';
+                    
+                    if (policyType === 'privacidad') {
+                        title = 'Política de Privacidad';
+                        content = '<h6>1. Tratamiento de Datos</h6><p>En JobTracker, nos tomamos muy en serio la privacidad de tus datos. La información sobre tus postulaciones de empleo y notas asociadas se almacena de forma segura en nuestro servidor o en tu almacenamiento local según corresponda.</p><h6>2. Uso de la Información</h6><p>Los datos recopilados (títulos de empleo, empresas, ubicaciones de partida) se utilizan exclusivamente para facilitarte el seguimiento de tus candidaturas, calcular distancias de trayecto estimadas y consumos de combustible.</p><h6>3. Cookies y Almacenamiento Local</h6><p>Utilizamos almacenamiento local (localStorage) en tu navegador para asegurar el funcionamiento sin conexión y para mantener iniciada tu sesión de forma segura.</p>';
+                    } else if (policyType === 'terminos') {
+                        title = 'Términos de Servicio';
+                        content = '<h6>1. Uso del Servicio</h6><p>JobTracker es una plataforma personal diseñada para la organización y seguimiento del proceso de búsqueda de empleo. Queda prohibido su uso para fines ilícitos o de forma automatizada mediante scripts no autorizados.</p><h6>2. Exclusiones de Responsabilidad</h6><p>La aplicación utiliza APIs públicas externas (como OpenStreetMap, Nominatim y OSRM) para calcular rutas y geolocalizar ofertas. No nos hacemos responsables de las posibles discrepancias en tiempos de conducción o cálculo de distancias de dicha herramientas de terceros.</p>';
+                    } else if (policyType === 'cookies') {
+                        title = 'Política de Cookies';
+                        content = '<h6>1. ¿Qué cookies utilizamos?</h6><p>JobTracker no utiliza cookies de seguimiento ni cookies de terceros para publicidad. Únicamente utilizamos tecnologías de almacenamiento local del navegador (como localStorage) para almacenar los tokens de inicio de sesión de usuario y la persistencia temporal de datos en modo offline.</p>';
+                    } else if (policyType === 'legal') {
+                        title = 'Aviso Legal';
+                        content = '<h6>1. Titularidad del Sitio</h6><p>En cumplimiento de las normativas de servicios de la sociedad de la información, se informa que esta plataforma es una herramienta privada de gestión de candidaturas de empleo.</p><h6>2. Enlaces a Terceros</h6><p>Esta aplicación contiene enlaces directos a portales externos de empleo (LinkedIn, InfoJobs, etc.). El acceso y registro en dichos portales se rigen bajo los términos propios de cada uno de ellos.</p>';
+                    }
+                    
+                    modalTitle.textContent = title;
+                    modalBody.innerHTML = content;
+                    
+                    const modal = new bootstrap.Modal(document.getElementById('modal-policies'));
+                    modal.show();
+                });
+            });
+        });
+    </script>
+</body>
+</html>
