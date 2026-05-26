@@ -421,6 +421,17 @@ async function handleQuestionSubmit(e) {
         payload.id = id;
     }
 
+    const apiPayload = {
+        question_text: payload.question,
+        answer_text: payload.answer,
+        category: payload.category,
+        difficulty: payload.difficulty,
+        application_id: payload.application_id
+    };
+    if (isEdit) {
+        apiPayload.id = id;
+    }
+
     const btnSave = document.getElementById('btn-save-question');
     const spinner = document.getElementById('spinner-save-question');
     btnSave.disabled = true;
@@ -442,7 +453,7 @@ async function handleQuestionSubmit(e) {
         const response = await fetch(url, {
             method: method,
             headers: headers,
-            body: JSON.stringify(payload)
+            body: JSON.stringify(apiPayload)
         });
 
         if (response.ok) {
