@@ -466,10 +466,14 @@ class JobTrackerCalendar {
         this.upcomingEventsEl.innerHTML = '';
         const offers = this.getOffers();
 
-        // Filtrar eventos del mes actual en orden cronológico
+        const now = new Date();
+        // Filtrar eventos del mes actual que sean futuros (fecha y hora mayor o igual al momento actual)
         const currentMonthEvents = CalendarState.events.filter(ev => {
             const evDate = new Date(ev.fecha);
-            return evDate.getFullYear() === year && evDate.getMonth() === month;
+            const evDateTime = new Date(`${ev.fecha}T${ev.hora}`);
+            return evDate.getFullYear() === year && 
+                   evDate.getMonth() === month && 
+                   evDateTime >= now;
         });
 
         // Ordenar por fecha y hora
