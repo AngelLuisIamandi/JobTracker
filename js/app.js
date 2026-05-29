@@ -34,7 +34,8 @@ const INITIAL_MOCK_OFFERS = [
         puesto: 'Senior Frontend Engineer',
         fecha_postulacion: '2026-05-15',
         estado: 'En proceso',
-        salario: 85000,
+        salario: '85.000',
+        interes: 5,
         enlace: 'https://careers.google.com',
         notas: 'Entrevista de diseño de sistemas agendada. Repasar conceptos de arquitectura, caching y SSR.',
         fecha_entrevista: '2026-05-25',
@@ -49,7 +50,8 @@ const INITIAL_MOCK_OFFERS = [
         puesto: 'Software Engineer - React',
         fecha_postulacion: '2026-05-22',
         estado: 'Postulado',
-        salario: 72000,
+        salario: '70.000 - 75.000',
+        interes: 4,
         enlace: 'https://stripe.com/jobs',
         notas: 'Postulado a través de un contacto interno en LinkedIn. Esperando respuesta de RRHH.',
         fecha_entrevista: '',
@@ -64,7 +66,8 @@ const INITIAL_MOCK_OFFERS = [
         puesto: 'Product Engineer (React)',
         fecha_postulacion: '2026-05-02',
         estado: 'Rechazado',
-        salario: 95000,
+        salario: '95.000',
+        interes: 3,
         enlace: 'https://meta.com/careers',
         notas: 'Llegué a la ronda final técnica. El feedback fue positivo, pero seleccionaron a alguien con más experiencia en sistemas distribuidos.',
         fecha_entrevista: '2026-05-12',
@@ -79,7 +82,8 @@ const INITIAL_MOCK_OFFERS = [
         puesto: 'Developer Relations Engineer',
         fecha_postulacion: '2026-05-08',
         estado: 'Aceptado',
-        salario: 80000,
+        salario: '80.000',
+        interes: 5,
         enlace: 'https://vercel.com/careers',
         notas: '¡Oferta recibida! Excelente comunicación durante todo el proceso. Revisando términos del contrato.',
         fecha_entrevista: '2026-05-18',
@@ -109,6 +113,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (session && session.user) {
         document.getElementById('navbar-username').textContent = session.user.nombre;
     }
+
+    // Inicializar el selector de fueguitos
+    initFlameSelector();
 
     // Cargar ofertas iniciales
     loadOffers();
@@ -253,6 +260,7 @@ async function loadOffers() {
                 fecha_postulacion: o.date_applied,
                 estado: o.status,
                 salario: o.salario || null, // Guardado si existe
+                interes: o.interes ? parseInt(o.interes) : 1,
                 enlace: o.url || '',
                 notas: o.description || '',
                 modalidad: o.modalidad || 'Presencial',
@@ -284,15 +292,24 @@ async function loadOffers() {
         }
     } catch (error) {
         console.warn('Usando base de datos local para ofertas (Fallback LocalStorage).');
+        const session = Auth.isAuthenticated();
         
         let localData = localStorage.getItem(MOCK_OFFERS_KEY);
-        if (!localData) {
-            // Guardar ofertas demo la primera vez
-            localStorage.setItem(MOCK_OFFERS_KEY, JSON.stringify(INITIAL_MOCK_OFFERS));
-            localData = JSON.stringify(INITIAL_MOCK_OFFERS);
+        if (session) {
+            AppState.offers = localData ? JSON.parse(localData) : [];
+        } else {
+            if (!localData) {
+                // Guardar ofertas demo la primera vez
+                localStorage.setItem(MOCK_OFFERS_KEY, JSON.stringify(INITIAL_MOCK_OFFERS));
+                localData = JSON.stringify(INITIAL_MOCK_OFFERS);
+            }
+            AppState.offers = JSON.parse(localData);
         }
         
-        AppState.offers = JSON.parse(localData);
+        AppState.offers = AppState.offers.map(o => ({
+            ...o,
+            interes: o.interes ? parseInt(o.interes) : 1
+        }));
     }
 
     showLoader(false);
@@ -332,8 +349,8 @@ function applyFiltersAndRender() {
         } else if (AppState.filters.sort === 'empresa-asc') {
             return a.empresa.localeCompare(b.empresa);
         } else if (AppState.filters.sort === 'salario-desc') {
-            const salA = parseFloat(a.salario) || 0;
-            const salB = parseFloat(b.salario) || 0;
+            const salA = getNumericSalary(a.salario);
+            const salB = getNumericSalary(b.salario);
             return salB - salA;
         }
         return 0;
@@ -426,7 +443,7 @@ function renderOffersTable() {
         const modalityLabel = offer.modalidad || 'Presencial';
 
         const logoLetter = offer.empresa ? offer.empresa.charAt(0).toUpperCase() : '?';
-        const formattedSalary = offer.salario ? `${parseFloat(offer.salario).toLocaleString('es-ES')} €` : 'No esp.';
+        const formattedSalary = formatSalary(offer.salario);
         
         // Formatear Fecha
         const dateObj = new Date(offer.fecha_postulacion);
@@ -441,7 +458,12 @@ function renderOffersTable() {
                     <span class="badge ${modalityBadgeClass}" style="font-size: 0.65rem; padding: 0.25em 0.5em; text-transform: none;">${modalityLabel}</span>
                 </div>
             </td>
-            <td>${offer.puesto}</td>
+            <td>
+                <div>${offer.puesto}</div>
+                <div class="text-warning mt-1" style="font-size: 0.85rem;" title="Nivel de interés: ${offer.interes || 1} de 5">
+                    ${renderFlames(offer.interes || 1)}
+                </div>
+            </td>
             <td>
                 <i class="bi bi-calendar-event me-2 text-secondary"></i>${formattedDate}
             </td>
@@ -497,6 +519,9 @@ function renderOffersTable() {
                 </div>
                 <div class="mb-2">
                     <div class="text-secondary fs-7 fw-semibold">${offer.puesto}</div>
+                    <div class="text-warning mt-1" style="font-size: 0.85rem;" title="Nivel de interés: ${offer.interes || 1} de 5">
+                        ${renderFlames(offer.interes || 1)}
+                    </div>
                 </div>
                 <div class="d-flex justify-content-between text-secondary fs-8 mb-3">
                     <span><i class="bi bi-calendar-event me-1"></i>${formattedDate}</span>
@@ -585,6 +610,11 @@ function openOfferModal(id = null) {
             document.getElementById('offer-fecha').value = offer.fecha_postulacion;
             document.getElementById('offer-estado').value = offer.estado;
             document.getElementById('offer-salario').value = offer.salario || '';
+            const interestVal = offer.interes ? parseInt(offer.interes) : 1;
+            document.getElementById('offer-interes').value = interestVal;
+            if (window.updateFlameSelectorUI) {
+                window.updateFlameSelectorUI(interestVal);
+            }
             document.getElementById('offer-enlace').value = offer.enlace || '';
             document.getElementById('offer-notas').value = offer.notas || '';
             document.getElementById('offer-fecha-entrevista').value = offer.fecha_entrevista || '';
@@ -597,6 +627,10 @@ function openOfferModal(id = null) {
         document.getElementById('offer-fecha').value = today;
         document.getElementById('offer-modalidad').value = 'Presencial';
         document.getElementById('offer-ubicacion').value = '';
+        document.getElementById('offer-interes').value = 1;
+        if (window.updateFlameSelectorUI) {
+            window.updateFlameSelectorUI(1);
+        }
     }
 
     offerModal.show();
@@ -655,7 +689,8 @@ async function handleOfferSubmit(e) {
         puesto: puestoInput.value.trim(),
         fecha_postulacion: fechaInput.value,
         estado: document.getElementById('offer-estado').value,
-        salario: document.getElementById('offer-salario').value ? parseFloat(document.getElementById('offer-salario').value) : null,
+        salario: document.getElementById('offer-salario').value.trim() || null,
+        interes: parseInt(document.getElementById('offer-interes').value) || 1,
         enlace: document.getElementById('offer-enlace').value.trim(),
         notas: document.getElementById('offer-notas').value.trim(),
         fecha_entrevista: document.getElementById('offer-fecha-entrevista').value,
@@ -689,6 +724,7 @@ async function handleOfferSubmit(e) {
             date_applied: payload.fecha_postulacion,
             status: payload.estado,
             salario: payload.salario,
+            interes: payload.interes,
             url: payload.enlace,
             description: payload.notas,
             modalidad: payload.modalidad,
@@ -782,9 +818,13 @@ function openDetailModal(id) {
     document.getElementById('detail-fecha').textContent = formattedDate;
 
     // Salario
-    document.getElementById('detail-salario').textContent = offer.salario 
-        ? `${parseFloat(offer.salario).toLocaleString('es-ES')} € / anuales`
-        : 'No especificado';
+    document.getElementById('detail-salario').textContent = formatSalary(offer.salario);
+
+    // Nivel de Interés
+    const detailInteres = document.getElementById('detail-interes');
+    if (detailInteres) {
+        detailInteres.innerHTML = renderFlames(offer.interes || 1);
+    }
 
     // Notas
     document.getElementById('detail-notas').textContent = offer.notas || 'Sin notas adicionales.';
@@ -900,6 +940,104 @@ function showLoader(visible) {
     } else {
         spinner.classList.add('d-none');
     }
+}
+
+// Inicializar el selector de fueguitos (Fase 11)
+function initFlameSelector() {
+    const flamesContainer = document.getElementById('interest-flames-container');
+    if (!flamesContainer) return;
+    const flames = flamesContainer.querySelectorAll('.flame-selector-icon');
+    const input = document.getElementById('offer-interes');
+
+    function updateFlamesUI(value) {
+        flames.forEach(flame => {
+            const val = parseInt(flame.dataset.value);
+            if (val <= value) {
+                flame.classList.remove('text-muted');
+                flame.classList.add('flame-active');
+            } else {
+                flame.classList.remove('flame-active');
+                flame.classList.add('text-muted');
+            }
+        });
+    }
+
+    flames.forEach(flame => {
+        // Hover
+        flame.addEventListener('mouseenter', () => {
+            const hoverValue = parseInt(flame.dataset.value);
+            flames.forEach(f => {
+                const val = parseInt(f.dataset.value);
+                if (val <= hoverValue) {
+                    f.classList.remove('text-muted');
+                    f.classList.add('flame-active');
+                } else {
+                    f.classList.remove('flame-active');
+                    f.classList.add('text-muted');
+                }
+            });
+        });
+
+        // Mouse leave
+        flame.addEventListener('mouseleave', () => {
+            const currentValue = parseInt(input.value) || 1;
+            updateFlamesUI(currentValue);
+        });
+
+        // Click
+        flame.addEventListener('click', () => {
+            const clickValue = parseInt(flame.dataset.value);
+            input.value = clickValue;
+            updateFlamesUI(clickValue);
+        });
+    });
+
+    window.updateFlameSelectorUI = updateFlamesUI;
+}
+
+// Pintar fueguitos en HTML (Fase 11)
+function renderFlames(rating) {
+    let html = '';
+    const activeRating = parseInt(rating) || 1;
+    for (let i = 1; i <= 5; i++) {
+        if (i <= activeRating) {
+            html += '<i class="bi bi-fire flame-active me-0.5" style="display: inline-block;"></i>';
+        } else {
+            html += '<i class="bi bi-fire text-muted opacity-40 me-0.5"></i>';
+        }
+    }
+    return html;
+}
+
+// Formatear salario flexible (Fase 11)
+function formatSalary(salary) {
+    if (!salary) return 'No esp.';
+    const clean = String(salary).trim();
+    if (clean === '') return 'No esp.';
+    
+    // Si contiene caracteres que indiquen rango o formato de texto, se muestra tal cual
+    const isNumericOnly = /^\d+([\.,]\d+)?$/.test(clean.replace(/\s/g, ''));
+    if (isNumericOnly) {
+        const num = parseFloat(clean.replace(/\./g, '').replace(/,/g, '.'));
+        if (!isNaN(num)) {
+            return `${num.toLocaleString('es-ES')} €`;
+        }
+    }
+    
+    if (clean.includes('€')) {
+        return clean;
+    }
+    return `${clean} €`;
+}
+
+// Obtener valor numérico del salario para ordenar de forma correcta (Fase 11)
+function getNumericSalary(salaryStr) {
+    if (!salaryStr) return 0;
+    const clean = String(salaryStr).replace(/\s/g, '').replace(/€/g, '');
+    const firstPart = clean.split('-')[0];
+    const normalized = firstPart.replace(/\./g, '').replace(/,/g, '.');
+    const num = parseFloat(normalized);
+    return isNaN(num) ? 0 : num;
 }
 
 // Hacer globales funciones necesarias para onClick de las tablas y botones

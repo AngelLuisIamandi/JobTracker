@@ -1250,5 +1250,16 @@ h1, h2, h3, h4, h5, h6 {
     padding: 0 !important;
 }
 
-
-
+/* Nivel de Interés - Fueguitos 🔥 */
+.flame-active {
+    color: #f97316 !important; /* naranja brillante */
+    filter: drop-shadow(0 0 5px rgba(249, 115, 22, 0.75));
+    transform: scale(1.15);
+}
+.flame-selector-icon {
+    transition: all var(--transition-fast) !important;
+}
+.flame-selector-icon:hover {
+    color: #f97316 !important;
+    transform: scale(1.25);
+}

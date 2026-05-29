@@ -129,8 +129,8 @@ class JobTrackerCalendar {
 
     // Cargar Eventos desde API o LocalStorage
     async loadEvents() {
+        const session = typeof Auth !== 'undefined' ? Auth.isAuthenticated() : null;
         try {
-            const session = typeof Auth !== 'undefined' ? Auth.isAuthenticated() : null;
             const token = session ? session.token : '';
             const headers = { 'Content-Type': 'application/json' };
             if (token) {
@@ -162,11 +162,16 @@ class JobTrackerCalendar {
         } catch (error) {
             console.warn('Cargando eventos desde base de datos local (Mock localStorage).');
             let localEvents = localStorage.getItem(MOCK_EVENTS_KEY);
-            if (!localEvents) {
-                localStorage.setItem(MOCK_EVENTS_KEY, JSON.stringify(INITIAL_MOCK_EVENTS));
-                localEvents = JSON.stringify(INITIAL_MOCK_EVENTS);
+            if (session) {
+                // Si está autenticado, no sembrar eventos mock
+                CalendarState.events = localEvents ? JSON.parse(localEvents) : [];
+            } else {
+                if (!localEvents) {
+                    localStorage.setItem(MOCK_EVENTS_KEY, JSON.stringify(INITIAL_MOCK_EVENTS));
+                    localEvents = JSON.stringify(INITIAL_MOCK_EVENTS);
+                }
+                CalendarState.events = JSON.parse(localEvents);
             }
-            CalendarState.events = JSON.parse(localEvents);
         }
     }
 
@@ -177,8 +182,16 @@ class JobTrackerCalendar {
             return window.AppState.offers;
         }
         // Fallback si no está cargado js/app.js
+        const session = typeof Auth !== 'undefined' ? Auth.isAuthenticated() : null;
         const localOffers = localStorage.getItem('job_tracker_offers');
-        return localOffers ? JSON.parse(localOffers) : [];
+        if (session) {
+            return localOffers ? JSON.parse(localOffers) : [];
+        } else {
+            if (!localOffers) {
+                return INITIAL_MOCK_OFFERS;
+            }
+            return JSON.parse(localOffers);
+        }
     }
 
     // Rellenar dropdown del modal con las ofertas existentes

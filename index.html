@@ -326,8 +326,21 @@
 
                             <!-- Salario -->
                             <div class="col-md-6">
-                                <label for="offer-salario" class="form-label">Salario Propuesto / Estimado (€ o $)</label>
-                                <input type="number" class="form-control" id="offer-salario" placeholder="Ej: 35000">
+                                <label for="offer-salario" class="form-label">Salario Propuesto / Estimado</label>
+                                <input type="text" class="form-control" id="offer-salario" placeholder="Ej: 30.000 - 35.000 €">
+                            </div>
+
+                            <!-- Interés (Fueguitos) -->
+                            <div class="col-md-6">
+                                <label class="form-label d-block">Nivel de Interés</label>
+                                <div class="d-flex align-items-center gap-2 mt-1.5" id="interest-flames-container" style="font-size: 1.4rem;">
+                                    <input type="hidden" id="offer-interes" value="1">
+                                    <i class="bi bi-fire flame-selector-icon text-muted" data-value="1" style="cursor: pointer; transition: all 0.2s;" role="button" aria-label="1 fuego"></i>
+                                    <i class="bi bi-fire flame-selector-icon text-muted" data-value="2" style="cursor: pointer; transition: all 0.2s;" role="button" aria-label="2 fuegos"></i>
+                                    <i class="bi bi-fire flame-selector-icon text-muted" data-value="3" style="cursor: pointer; transition: all 0.2s;" role="button" aria-label="3 fuegos"></i>
+                                    <i class="bi bi-fire flame-selector-icon text-muted" data-value="4" style="cursor: pointer; transition: all 0.2s;" role="button" aria-label="4 fuegos"></i>
+                                    <i class="bi bi-fire flame-selector-icon text-muted" data-value="5" style="cursor: pointer; transition: all 0.2s;" role="button" aria-label="5 fuegos"></i>
+                                </div>
                             </div>
 
                             <!-- Enlace Oferta -->
@@ -428,6 +441,10 @@
                             <div class="detail-field">
                                 <div class="detail-label">Fecha de Postulación</div>
                                 <div class="detail-val" id="detail-fecha">-</div>
+                            </div>
+                            <div class="detail-field">
+                                <div class="detail-label">Nivel de Interés</div>
+                                <div class="detail-val" id="detail-interes">-</div>
                             </div>
                             <div class="detail-field">
                                 <div class="detail-label">Salario Ofrecido</div>

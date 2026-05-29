@@ -10,6 +10,12 @@ let categories = [];
 let portals = [];
 let isMockMode = false;
 
+let categoryModal;
+let portalModal;
+let confirmDeleteModal;
+let deleteType = null;
+let deleteId = null;
+
 // Inyectar estilos CSS específicos para Drag & Drop y transiciones de manera dinámica
 const injectStyles = () => {
     const styleEl = document.createElement('style');
@@ -62,30 +68,30 @@ document.addEventListener('DOMContentLoaded', () => {
     injectStyles();
     loadCategoriesAndPortals();
 
+    // Inicializar modales de Bootstrap una sola vez
+    categoryModal = new bootstrap.Modal(document.getElementById('modal-category'));
+    portalModal = new bootstrap.Modal(document.getElementById('modal-portal'));
+    confirmDeleteModal = new bootstrap.Modal(document.getElementById('modal-confirm-delete'));
+
     // Event listeners para los formularios de modales
     document.getElementById('form-category').addEventListener('submit', handleCategorySubmit);
     document.getElementById('form-portal').addEventListener('submit', handlePortalSubmit);
 
-    // Eventos al abrir modales para limpiar formularios
-    document.getElementById('modal-category').addEventListener('show.bs.modal', (e) => {
-        const trigger = e.relatedTarget;
-        // Si no fue abierto por el botón "Editar", limpiar form
-        if (!trigger || !trigger.classList.contains('btn-edit-category-trigger')) {
-            document.getElementById('modalCategoryTitle').textContent = 'Nueva Categoría';
-            document.getElementById('category-edit-id').value = '';
-            document.getElementById('input-category-name').value = '';
-        }
+    // Eventos al hacer click en los botones de "Crear" para limpiar formularios
+    document.getElementById('btn-new-category').addEventListener('click', () => {
+        openCategoryModal();
     });
 
-    document.getElementById('modal-portal').addEventListener('show.bs.modal', (e) => {
-        const trigger = e.relatedTarget;
-        populateCategoryDropdown();
-        if (!trigger || !trigger.classList.contains('btn-edit-portal-trigger')) {
-            document.getElementById('modalPortalTitle').textContent = 'Nuevo Sitio de Búsqueda';
-            document.getElementById('portal-edit-id').value = '';
-            document.getElementById('input-portal-name').value = '';
-            document.getElementById('input-portal-url').value = '';
-            document.getElementById('select-portal-category').value = '';
+    document.getElementById('btn-new-portal').addEventListener('click', () => {
+        openPortalModal();
+    });
+
+    // Acción confirmar borrado en modal confirmación
+    document.getElementById('btn-confirm-delete-action').addEventListener('click', () => {
+        if (deleteType === 'category') {
+            executeDeleteCategory(deleteId);
+        } else if (deleteType === 'portal') {
+            executeDeletePortal(deleteId);
         }
     });
 });
@@ -564,21 +570,32 @@ async function handleCategorySubmit(e) {
     }
 }
 
-// Abrir Modal de Categoría en Modo Edición
-function openEditCategory(id, name) {
-    document.getElementById('modalCategoryTitle').textContent = 'Editar Categoría';
-    document.getElementById('category-edit-id').value = id;
-    document.getElementById('input-category-name').value = name;
-    
-    const modalEl = document.getElementById('modal-category');
-    const modal = new bootstrap.Modal(modalEl);
-    modal.show();
+// Abrir Modal de Categoría en Modo Creación/Edición
+function openCategoryModal(id = null, name = '') {
+    const form = document.getElementById('form-category');
+    form.reset();
+    document.getElementById('category-edit-id').value = id || '';
+    document.getElementById('input-category-name').value = name || '';
+    document.getElementById('modalCategoryTitle').textContent = id ? 'Editar Categoría' : 'Nueva Categoría';
+    categoryModal.show();
 }
 
-// Eliminar Categoría
-async function deleteCategory(id) {
-    if (!confirm('¿Estás seguro de que deseas eliminar esta categoría? Los sitios que contiene se moverán a "Sin Categoría".')) return;
+// Abrir Modal de Categoría en Modo Edición (llamado desde el onClick inline)
+function openEditCategory(id, name) {
+    openCategoryModal(id, name);
+}
 
+// Solicitar confirmación de borrado de categoría (abre modal premium)
+function deleteCategory(id) {
+    deleteType = 'category';
+    deleteId = id;
+    document.getElementById('confirm-delete-text').textContent = '¿Estás seguro de que deseas eliminar esta categoría? Los sitios que contiene se moverán a "Sin Categoría".';
+    confirmDeleteModal.show();
+}
+
+// Ejecutar borrado real de categoría
+async function executeDeleteCategory(id) {
+    confirmDeleteModal.hide();
     if (isMockMode) {
         // Eliminar y reasignar portales
         categories = categories.filter(c => c.id != id);
@@ -695,28 +712,47 @@ async function handlePortalSubmit(e) {
     }
 }
 
-// Abrir Modal de Portal en Modo Edición
-function openEditPortal(id) {
-    const portal = portals.find(p => p.id == id);
-    if (!portal) return;
-
+// Abrir Modal de Portal en Modo Creación/Edición
+function openPortalModal(id = null) {
+    const form = document.getElementById('form-portal');
+    form.reset();
     populateCategoryDropdown();
+    document.getElementById('portal-edit-id').value = id || '';
+    document.getElementById('input-portal-name').value = '';
+    document.getElementById('input-portal-url').value = '';
+    document.getElementById('select-portal-category').value = '';
 
-    document.getElementById('modalPortalTitle').textContent = 'Editar Sitio de Búsqueda';
-    document.getElementById('portal-edit-id').value = id;
-    document.getElementById('input-portal-name').value = portal.name;
-    document.getElementById('input-portal-url').value = portal.url;
-    document.getElementById('select-portal-category').value = portal.category_id || '';
-
-    const modalEl = document.getElementById('modal-portal');
-    const modal = new bootstrap.Modal(modalEl);
-    modal.show();
+    if (id) {
+        const portal = portals.find(p => p.id == id);
+        if (portal) {
+            document.getElementById('modalPortalTitle').textContent = 'Editar Sitio de Búsqueda';
+            document.getElementById('portal-edit-id').value = portal.id;
+            document.getElementById('input-portal-name').value = portal.name;
+            document.getElementById('input-portal-url').value = portal.url;
+            document.getElementById('select-portal-category').value = portal.category_id || '';
+        }
+    } else {
+        document.getElementById('modalPortalTitle').textContent = 'Nuevo Sitio de Búsqueda';
+    }
+    portalModal.show();
 }
 
-// Eliminar Portal
-async function deletePortal(id) {
-    if (!confirm('¿Estás seguro de que deseas eliminar este sitio web de búsqueda?')) return;
+// Abrir Modal de Portal en Modo Edición (llamado desde el onClick inline)
+function openEditPortal(id) {
+    openPortalModal(id);
+}
 
+// Solicitar confirmación de borrado de portal (abre modal premium)
+function deletePortal(id) {
+    deleteType = 'portal';
+    deleteId = id;
+    document.getElementById('confirm-delete-text').textContent = '¿Estás seguro de que deseas eliminar este sitio web de búsqueda?';
+    confirmDeleteModal.show();
+}
+
+// Ejecutar borrado real de portal
+async function executeDeletePortal(id) {
+    confirmDeleteModal.hide();
     if (isMockMode) {
         portals = portals.filter(p => p.id != id);
         saveMockData();
@@ -749,3 +785,11 @@ async function deletePortal(id) {
         }
     }
 }
+
+// Exponer funciones globales para que puedan ser invocadas desde el HTML renderizado dinámicamente
+window.openEditCategory = openEditCategory;
+window.openEditPortal = openEditPortal;
+window.deleteCategory = deleteCategory;
+window.deletePortal = deletePortal;
+window.executeDeleteCategory = executeDeleteCategory;
+window.executeDeletePortal = executeDeletePortal;

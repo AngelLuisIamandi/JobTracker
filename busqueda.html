@@ -76,10 +76,10 @@
                 </p>
             </div>
             <div class="d-flex gap-2">
-                <button class="btn btn-premium-secondary" id="btn-new-category" data-bs-toggle="modal" data-bs-target="#modal-category">
+                <button class="btn btn-premium-secondary" id="btn-new-category">
                     <i class="bi bi-folder-plus me-1" aria-hidden="true"></i>Nueva Categoría
                 </button>
-                <button class="btn btn-premium" id="btn-new-portal" data-bs-toggle="modal" data-bs-target="#modal-portal">
+                <button class="btn btn-premium" id="btn-new-portal">
                     <i class="bi bi-plus-circle me-1" aria-hidden="true"></i>Nuevo Sitio
                 </button>
             </div>
@@ -157,6 +157,25 @@
             </div>
         </div>
     </div>
+    <!-- Modal Confirmar Eliminación (Compartido) -->
+    <div class="modal fade" id="modal-confirm-delete" tabindex="-1" aria-labelledby="modalConfirmDeleteTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title fw-bold text-danger fs-5" id="modalConfirmDeleteTitle">¿Estás seguro?</h2>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center p-3">
+                    <p class="mb-0 text-secondary" id="confirm-delete-text">¿Estás seguro de que deseas eliminar este elemento?</p>
+                </div>
+                <div class="modal-footer justify-content-center border-top-0">
+                    <button type="button" class="btn btn-premium-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-premium-danger" id="btn-confirm-delete-action">Confirmar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal de Políticas (Compartido) -->
     <div class="modal fade" id="modal-policies" tabindex="-1" aria-labelledby="modalPoliciesTitle" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg">

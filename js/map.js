@@ -426,6 +426,7 @@ async function loadJobsOnMap() {
                 fecha_postulacion: o.date_applied,
                 estado: o.status,
                 salario: o.salario || null,
+                interes: o.interes ? parseInt(o.interes) : 1,
                 enlace: o.url || '',
                 notas: o.description || '',
                 modalidad: o.modalidad || 'Presencial',
@@ -440,7 +441,10 @@ async function loadJobsOnMap() {
         console.warn('Cargando base de datos local para el mapa (Fallback).');
         const localData = localStorage.getItem(MOCK_OFFERS_KEY);
         if (localData) {
-            offers = JSON.parse(localData);
+            offers = JSON.parse(localData).map(o => ({
+                ...o,
+                interes: o.interes ? parseInt(o.interes) : 1
+            }));
         } else {
             offers = [];
         }
@@ -580,7 +584,7 @@ function createJobCard(job, isRemote) {
     if (job.modalidad === 'Híbrido') badgeClass = 'badge-hibrido';
     if (job.modalidad === 'Remoto') badgeClass = 'badge-remoto';
 
-    const formattedSalary = job.salario ? `${parseFloat(job.salario).toLocaleString('es-ES')} €` : 'No esp.';
+    const formattedSalary = formatSalary(job.salario);
 
     // Si ya tiene distancia calculada en la caché, renderizarla síncronamente
     let distanceContentHtml = '';
@@ -600,7 +604,10 @@ function createJobCard(job, isRemote) {
         <div class="d-flex justify-content-between align-items-start">
             <div style="max-width: 70%;">
                 <h3 class="map-job-card-title mb-1 text-truncate">${job.puesto}</h3>
-                <div class="map-job-card-company text-truncate">${job.empresa}</div>
+                <div class="map-job-card-company text-truncate mb-1">${job.empresa}</div>
+                <div class="text-warning mb-1" style="font-size: 0.75rem;">
+                    ${renderFlames(job.interes || 1)}
+                </div>
             </div>
             <div class="d-flex flex-column align-items-end gap-1">
                 <span class="badge ${badgeClass}" style="font-size: 0.65rem; text-transform: none;">${job.modalidad || 'Presencial'}</span>
@@ -777,7 +784,7 @@ async function calculateAndDrawRoute(job, marker, showError = false) {
                 const monthlyFuelCost = calculateMonthlyFuelCost(parseFloat(distanceKm), job.modalidad);
 
                 // Construir el popup combinado (Información del empleo + Ruta y Consumo)
-                const formattedSalary = job.salario ? `${parseFloat(job.salario).toLocaleString('es-ES')} €` : 'No esp.';
+                const formattedSalary = formatSalary(job.salario);
                 const routeHtml = `
                     <div class="border-top border-secondary pt-2 mt-2" style="border-color: rgba(255,255,255,0.08) !important;">
                         <div class="fw-bold text-light fs-8 mb-1"><i class="bi bi-car-front-fill me-1 text-primary"></i>En automóvil:</div>
@@ -791,7 +798,10 @@ async function calculateAndDrawRoute(job, marker, showError = false) {
                 const combinedPopupContent = `
                     <div style="min-width: 190px;">
                         <h6 class="fw-bold mb-1 text-light fs-7">${job.puesto}</h6>
-                        <div class="text-secondary fs-8 mb-2">${job.empresa}</div>
+                        <div class="text-secondary fs-8 mb-1">${job.empresa}</div>
+                        <div class="text-warning mb-2" style="font-size: 0.75rem;">
+                            ${renderFlames(job.interes || 1)}
+                        </div>
                         <div class="d-flex justify-content-between align-items-center mb-1">
                             <span class="badge badge-status ${job.modalidad === 'Híbrido' ? 'badge-hibrido' : 'badge-presencial'}" style="font-size: 0.65rem; text-transform: none;">${job.modalidad}</span>
                             <span class="text-gradient-cyan fw-bold fs-8">${formattedSalary}</span>
@@ -953,11 +963,14 @@ function calculateMonthlyFuelCost(distanceKm, modality) {
 
 // Obtener estructura de popup básico de la oferta
 function getBasicPopupContent(job) {
-    const formattedSalary = job.salario ? `${parseFloat(job.salario).toLocaleString('es-ES')} €` : 'No esp.';
+    const formattedSalary = formatSalary(job.salario);
     return `
         <div style="min-width: 190px;">
             <h6 class="fw-bold mb-1 text-light fs-7">${job.puesto}</h6>
-            <div class="text-secondary fs-8 mb-2">${job.empresa}</div>
+            <div class="text-secondary fs-8 mb-1">${job.empresa}</div>
+            <div class="text-warning mb-2" style="font-size: 0.75rem;">
+                ${renderFlames(job.interes || 1)}
+            </div>
             <div class="d-flex justify-content-between align-items-center mb-1">
                 <span class="badge badge-status ${job.modalidad === 'Híbrido' ? 'badge-hibrido' : 'badge-presencial'}" style="font-size: 0.65rem; text-transform: none;">${job.modalidad}</span>
                 <span class="text-gradient-cyan fw-bold fs-8">${formattedSalary}</span>
@@ -1025,4 +1038,39 @@ function applyFilters() {
     });
 
     renderJobs(filtered, false);
+}
+
+// Pintar fueguitos en HTML (Fase 11)
+function renderFlames(rating) {
+    let html = '';
+    const activeRating = parseInt(rating) || 1;
+    for (let i = 1; i <= 5; i++) {
+        if (i <= activeRating) {
+            html += '<i class="bi bi-fire flame-active me-0.5" style="display: inline-block;"></i>';
+        } else {
+            html += '<i class="bi bi-fire text-muted opacity-40 me-0.5"></i>';
+        }
+    }
+    return html;
+}
+
+// Formatear salario flexible (Fase 11)
+function formatSalary(salary) {
+    if (!salary) return 'No esp.';
+    const clean = String(salary).trim();
+    if (clean === '') return 'No esp.';
+    
+    // Si contiene caracteres que indiquen rango o formato de texto, se muestra tal cual
+    const isNumericOnly = /^\d+([\.,]\d+)?$/.test(clean.replace(/\s/g, ''));
+    if (isNumericOnly) {
+        const num = parseFloat(clean.replace(/\./g, '').replace(/,/g, '.'));
+        if (!isNaN(num)) {
+            return `${num.toLocaleString('es-ES')} €`;
+        }
+    }
+    
+    if (clean.includes('€')) {
+        return clean;
+    }
+    return `${clean} €`;
 }
