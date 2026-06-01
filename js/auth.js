@@ -81,7 +81,7 @@ const Auth = {
                     nombre: data.user.username || data.user.nombre || 'Usuario',
                     email: data.user.email
                 };
-                this.saveSession(data.token, adaptedUser);
+                this.saveSession(data.token, adaptedUser, data.expires_at);
                 return { success: true, message: '¡Inicio de sesión exitoso!' };
             } else {
                 const errorData = await response.json().catch(() => ({}));
@@ -124,8 +124,10 @@ const Auth = {
     },
 
     // Guardar sesión en LocalStorage
-    saveSession: function(token, user) {
-        const expiresAt = new Date().getTime() + (7 * 24 * 60 * 60 * 1000); // 7 días
+    saveSession: function(token, user, expiresAtStr = null) {
+        const expiresAt = expiresAtStr 
+            ? new Date(expiresAtStr.replace(' ', 'T')).getTime() 
+            : new Date().getTime() + (7 * 24 * 60 * 60 * 1000); // 7 días
         const sessionData = {
             token,
             user,

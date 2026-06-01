@@ -14,6 +14,15 @@ let clickedJobId = null; // pinned job id
 let markerWithTooltip = null; // tracking active route tooltip
 
 const MOCK_OFFERS_KEY = 'job_tracker_offers';
+
+function getStorageKey(baseKey) {
+    const session = typeof Auth !== 'undefined' ? Auth.isAuthenticated() : null;
+    if (session && session.user && session.user.email) {
+        return `${baseKey}_user_${session.user.email}`;
+    }
+    return baseKey;
+}
+
 const API_BASE_MAP = window.API_BASE_URL || 'servidor';
 const API_OFFERS_URLS = {
     list: `${API_BASE_MAP}/applications.php`
@@ -139,6 +148,10 @@ async function loadUserProfile() {
         }
 
         const response = await fetch(`${API_BASE_MAP}/user_profile.php`, { headers });
+        if (response.status === 401) {
+            Auth.logout();
+            return;
+        }
         if (response.ok) {
             const user = await response.json();
             if (user.home_latitude !== null && user.home_longitude !== null) {
@@ -164,7 +177,7 @@ async function loadUserProfile() {
     }
     
     // Fallback: verificar en localStorage
-    const localHome = localStorage.getItem('job_tracker_user_home');
+    const localHome = localStorage.getItem(getStorageKey('job_tracker_user_home'));
     if (localHome) {
         try {
             const saved = JSON.parse(localHome);
@@ -342,7 +355,7 @@ function showFallbackLocationModal(dismissible = false) {
 // Guardar ubicación en el perfil y localStorage
 async function saveUserProfile(address, lat, lon) {
     // Guardar localmente
-    localStorage.setItem('job_tracker_user_home', JSON.stringify({ address, lat, lon }));
+    localStorage.setItem(getStorageKey('job_tracker_user_home'), JSON.stringify({ address, lat, lon }));
 
     try {
         const session = typeof Auth !== 'undefined' ? Auth.isAuthenticated() : null;
@@ -361,6 +374,10 @@ async function saveUserProfile(address, lat, lon) {
                 home_longitude: lon
             })
         });
+        if (response.status === 401) {
+            Auth.logout();
+            return;
+        }
         if (response.ok) {
             showToast('Ubicación de partida guardada en tu cuenta.', 'success');
         }
@@ -416,6 +433,10 @@ async function loadJobsOnMap() {
         }
 
         const response = await fetch(API_OFFERS_URLS.list, { headers });
+        if (response.status === 401) {
+            Auth.logout();
+            return;
+        }
         if (response.ok) {
             const data = await response.json() || [];
             // Mapear los datos de la base de datos (Inglés) a lo que espera el frontend (Español)
@@ -439,7 +460,7 @@ async function loadJobsOnMap() {
         }
     } catch (error) {
         console.warn('Cargando base de datos local para el mapa (Fallback).');
-        const localData = localStorage.getItem(MOCK_OFFERS_KEY);
+        const localData = localStorage.getItem(getStorageKey(MOCK_OFFERS_KEY));
         if (localData) {
             offers = JSON.parse(localData).map(o => ({
                 ...o,

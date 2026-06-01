@@ -5,6 +5,14 @@
 const API_BASE_PROFILE = window.API_BASE_URL || 'servidor';
 const MOCK_USERS_KEY = 'mock_users';
 
+function getStorageKey(baseKey) {
+    const session = typeof Auth !== 'undefined' ? Auth.isAuthenticated() : null;
+    if (session && session.user && session.user.email) {
+        return `${baseKey}_user_${session.user.email}`;
+    }
+    return baseKey;
+}
+
 let isMockProfile = false;
 let currentEmail = '';
 
@@ -53,6 +61,10 @@ async function loadProfile() {
 
     try {
         const response = await fetch(`${API_BASE_PROFILE}/user_profile.php`, { headers });
+        if (response.status === 401) {
+            Auth.logout();
+            return;
+        }
         if (response.ok) {
             const data = await response.json();
             document.getElementById('input-profile-username').value = data.username || '';
@@ -123,6 +135,10 @@ async function handleProfileUpdate(e) {
                 headers: headers,
                 body: JSON.stringify({ username })
             });
+            if (response.status === 401) {
+                Auth.logout();
+                return;
+            }
 
             if (response.ok) {
                 const data = await response.json();
@@ -166,14 +182,12 @@ async function handleDeleteAccount(e) {
         localStorage.setItem(MOCK_USERS_KEY, JSON.stringify(updatedUsers));
 
         // Limpiar todas las claves mock asociadas para no dejar basura huérfana
-        // Opcional: borrar postulaciones, eventos y portales mock del usuario
-        // Como el localStorage es compartido, podemos limpiar las claves de mock generales
-        localStorage.removeItem('job_tracker_offers');
-        localStorage.removeItem('job_tracker_events');
-        localStorage.removeItem('job_tracker_questions');
-        localStorage.removeItem('job_tracker_search_portals');
-        localStorage.removeItem('job_tracker_search_categories');
-        localStorage.removeItem('job_tracker_user_home');
+        localStorage.removeItem(getStorageKey('job_tracker_offers'));
+        localStorage.removeItem(getStorageKey('job_tracker_events'));
+        localStorage.removeItem(getStorageKey('job_tracker_questions'));
+        localStorage.removeItem(getStorageKey('job_tracker_search_portals'));
+        localStorage.removeItem(getStorageKey('job_tracker_search_categories'));
+        localStorage.removeItem(getStorageKey('job_tracker_user_home'));
 
         // Cerrar sesión
         localStorage.removeItem('job_tracker_session');
@@ -196,6 +210,10 @@ async function handleDeleteAccount(e) {
                 method: 'DELETE',
                 headers: headers
             });
+            if (response.status === 401) {
+                Auth.logout();
+                return;
+            }
 
             if (response.ok) {
                 // Cerrar modal
@@ -205,10 +223,14 @@ async function handleDeleteAccount(e) {
 
                 showToast('Cuenta eliminada permanentemente. Redirigiendo...', 'info');
 
-                // Limpiar la sesión
+                // Limpiar almacenamiento del usuario y sesión
+                localStorage.removeItem(getStorageKey('job_tracker_offers'));
+                localStorage.removeItem(getStorageKey('job_tracker_events'));
+                localStorage.removeItem(getStorageKey('job_tracker_questions'));
+                localStorage.removeItem(getStorageKey('job_tracker_search_portals'));
+                localStorage.removeItem(getStorageKey('job_tracker_search_categories'));
+                localStorage.removeItem(getStorageKey('job_tracker_user_home'));
                 localStorage.removeItem('job_tracker_session');
-                // Limpiar también localStorage de configuración local por si acaso
-                localStorage.removeItem('job_tracker_user_home');
 
                 setTimeout(() => {
                     window.location.href = 'login.html';

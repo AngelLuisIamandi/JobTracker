@@ -6,6 +6,14 @@ const API_BASE_PORTALS = window.API_BASE_URL || 'servidor';
 const MOCK_CATEGORIES_KEY = 'job_tracker_search_categories';
 const MOCK_PORTALS_KEY = 'job_tracker_search_portals';
 
+function getStorageKey(baseKey) {
+    const session = typeof Auth !== 'undefined' ? Auth.isAuthenticated() : null;
+    if (session && session.user && session.user.email) {
+        return `${baseKey}_user_${session.user.email}`;
+    }
+    return baseKey;
+}
+
 let categories = [];
 let portals = [];
 let isMockMode = false;
@@ -107,6 +115,10 @@ async function loadCategoriesAndPortals() {
 
     try {
         const response = await fetch(`${API_BASE_PORTALS}/portals.php`, { headers });
+        if (response.status === 401) {
+            Auth.logout();
+            return;
+        }
         if (response.ok) {
             const data = await response.json();
             categories = data.categories || [];
@@ -126,42 +138,48 @@ async function loadCategoriesAndPortals() {
 
 // Cargar datos locales de LocalStorage con Semilla de Prueba
 function loadMockData() {
-    let savedCategories = localStorage.getItem(MOCK_CATEGORIES_KEY);
-    let savedPortals = localStorage.getItem(MOCK_PORTALS_KEY);
+    const session = Auth.isAuthenticated();
+    let savedCategories = localStorage.getItem(getStorageKey(MOCK_CATEGORIES_KEY));
+    let savedPortals = localStorage.getItem(getStorageKey(MOCK_PORTALS_KEY));
 
-    if (!savedCategories || !savedPortals) {
-        // Sembrar datos por defecto
-        const defaultCategories = [
-            { id: 101, name: 'Portales de Empleo' },
-            { id: 102, name: 'Redes Profesionales' },
-            { id: 103, name: 'Canales y Foros' }
-        ];
-
-        // Fechas de ejemplo para ver el difuminado verde
-        const now = Date.now();
-        const defaultPortals = [
-            { id: 201, category_id: 102, name: 'LinkedIn Jobs', url: 'https://www.linkedin.com/jobs/', last_opened: new Date(now).toISOString() },
-            { id: 202, category_id: 101, name: 'InfoJobs', url: 'https://www.infojobs.net/', last_opened: new Date(now - 12 * 3600000).toISOString() }, // 12h de antigüedad (verde medio)
-            { id: 203, category_id: 101, name: 'Indeed', url: 'https://www.indeed.com/', last_opened: new Date(now - 25 * 3600000).toISOString() }, // 25h de antigüedad (sin verde)
-            { id: 204, category_id: 103, name: 'GitHub Jobs Fallback', url: 'https://github.com/', last_opened: null },
-            { id: 205, category_id: null, name: 'Google Jobs Search', url: 'https://google.com/', last_opened: null }
-        ];
-
-        localStorage.setItem(MOCK_CATEGORIES_KEY, JSON.stringify(defaultCategories));
-        localStorage.setItem(MOCK_PORTALS_KEY, JSON.stringify(defaultPortals));
-
-        categories = defaultCategories;
-        portals = defaultPortals;
+    if (session) {
+        categories = savedCategories ? JSON.parse(savedCategories) : [];
+        portals = savedPortals ? JSON.parse(savedPortals) : [];
     } else {
-        categories = JSON.parse(savedCategories);
-        portals = JSON.parse(savedPortals);
+        if (!savedCategories || !savedPortals) {
+            // Sembrar datos por defecto
+            const defaultCategories = [
+                { id: 101, name: 'Portales de Empleo' },
+                { id: 102, name: 'Redes Profesionales' },
+                { id: 103, name: 'Canales y Foros' }
+            ];
+
+            // Fechas de ejemplo para ver el difuminado verde
+            const now = Date.now();
+            const defaultPortals = [
+                { id: 201, category_id: 102, name: 'LinkedIn Jobs', url: 'https://www.linkedin.com/jobs/', last_opened: new Date(now).toISOString() },
+                { id: 202, category_id: 101, name: 'InfoJobs', url: 'https://www.infojobs.net/', last_opened: new Date(now - 12 * 3600000).toISOString() }, // 12h de antigüedad (verde medio)
+                { id: 203, category_id: 101, name: 'Indeed', url: 'https://www.indeed.com/', last_opened: new Date(now - 25 * 3600000).toISOString() }, // 25h de antigüedad (sin verde)
+                { id: 204, category_id: 103, name: 'GitHub Jobs Fallback', url: 'https://github.com/', last_opened: null },
+                { id: 205, category_id: null, name: 'Google Jobs Search', url: 'https://google.com/', last_opened: null }
+            ];
+
+            localStorage.setItem(getStorageKey(MOCK_CATEGORIES_KEY), JSON.stringify(defaultCategories));
+            localStorage.setItem(getStorageKey(MOCK_PORTALS_KEY), JSON.stringify(defaultPortals));
+
+            categories = defaultCategories;
+            portals = defaultPortals;
+        } else {
+            categories = JSON.parse(savedCategories);
+            portals = JSON.parse(savedPortals);
+        }
     }
 }
 
 // Guardar datos mock en LocalStorage
 function saveMockData() {
-    localStorage.setItem(MOCK_CATEGORIES_KEY, JSON.stringify(categories));
-    localStorage.setItem(MOCK_PORTALS_KEY, JSON.stringify(portals));
+    localStorage.setItem(getStorageKey(MOCK_CATEGORIES_KEY), JSON.stringify(categories));
+    localStorage.setItem(getStorageKey(MOCK_PORTALS_KEY), JSON.stringify(portals));
 }
 
 // Rellenar selector de categorías en modal de portales
@@ -401,11 +419,15 @@ async function handlePortalClick(portalId) {
                 'Authorization': `Bearer ${token}`
             };
 
-            await fetch(`${API_BASE_PORTALS}/portals.php?resource=portal&id=${portalId}`, {
+            const response = await fetch(`${API_BASE_PORTALS}/portals.php?resource=portal&id=${portalId}`, {
                 method: 'PUT',
                 headers: headers,
                 body: JSON.stringify({ register_click: true })
             });
+            if (response.status === 401) {
+                Auth.logout();
+                return;
+            }
         } catch (err) {
             console.error('Error al registrar click en servidor:', err);
         }
@@ -480,6 +502,10 @@ function setupDragAndDrop() {
                             headers: headers,
                             body: JSON.stringify({ category_id: targetCategoryId })
                         });
+                        if (response.status === 401) {
+                            Auth.logout();
+                            return;
+                        }
 
                         if (response.ok) {
                             showToast('Ubicación de sitio guardada en servidor.', 'success');
@@ -554,6 +580,10 @@ async function handleCategorySubmit(e) {
                     body: JSON.stringify({ name })
                 });
             }
+            if (response.status === 401) {
+                Auth.logout();
+                return;
+            }
 
             if (response.ok) {
                 showToast(editId ? 'Categoría modificada.' : 'Categoría creada con éxito.', 'success');
@@ -618,6 +648,10 @@ async function executeDeleteCategory(id) {
                 method: 'DELETE',
                 headers: headers
             });
+            if (response.status === 401) {
+                Auth.logout();
+                return;
+            }
 
             if (response.ok) {
                 showToast('Categoría eliminada.', 'success');
@@ -696,6 +730,10 @@ async function handlePortalSubmit(e) {
                     body: JSON.stringify({ name, url, category_id })
                 });
             }
+            if (response.status === 401) {
+                Auth.logout();
+                return;
+            }
 
             if (response.ok) {
                 showToast(editId ? 'Sitio web modificado.' : 'Sitio web registrado.', 'success');
@@ -771,6 +809,10 @@ async function executeDeletePortal(id) {
                 method: 'DELETE',
                 headers: headers
             });
+            if (response.status === 401) {
+                Auth.logout();
+                return;
+            }
 
             if (response.ok) {
                 showToast('Sitio web eliminado.', 'success');

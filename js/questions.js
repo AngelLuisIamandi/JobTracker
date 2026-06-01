@@ -6,6 +6,14 @@
 const MOCK_QUESTIONS_KEY = 'job_tracker_questions';
 const MOCK_OFFERS_KEY = 'job_tracker_offers';
 
+function getStorageKey(baseKey) {
+    const session = typeof Auth !== 'undefined' ? Auth.isAuthenticated() : null;
+    if (session && session.user && session.user.email) {
+        return `${baseKey}_user_${session.user.email}`;
+    }
+    return baseKey;
+}
+
 // Endpoints del servidor
 const API_BASE_QUESTIONS = window.API_BASE_URL || 'servidor';
 const API_QUESTIONS_URLS = {
@@ -168,6 +176,10 @@ async function fetchOffersList() {
         }
 
         const response = await fetch(`${API_BASE_QUESTIONS}/applications.php`, { headers });
+        if (response.status === 401) {
+            Auth.logout();
+            return [];
+        }
         if (response.ok) {
             const data = await response.json();
             // Mapear los datos de BD a las claves que espera el frontend
@@ -190,7 +202,7 @@ async function fetchOffersList() {
         }
     } catch (error) {
         console.warn('Cargando ofertas desde localStorage fallback para preguntas.');
-        const localOffers = localStorage.getItem(MOCK_OFFERS_KEY);
+        const localOffers = localStorage.getItem(getStorageKey(MOCK_OFFERS_KEY));
         return localOffers ? JSON.parse(localOffers) : [];
     }
 }
@@ -206,6 +218,10 @@ async function loadQuestions() {
         }
 
         const response = await fetch(API_QUESTIONS_URLS.list, { headers });
+        if (response.status === 401) {
+            Auth.logout();
+            return;
+        }
         if (response.ok) {
             const data = await response.json();
             // Mapear los datos de la base de datos a las claves que espera el frontend
@@ -223,14 +239,19 @@ async function loadQuestions() {
         }
     } catch (error) {
         console.warn('Usando base de datos local para preguntas de entrevista (Fallback LocalStorage).');
+        const session = Auth.isAuthenticated();
         
-        let localData = localStorage.getItem(MOCK_QUESTIONS_KEY);
-        if (!localData) {
-            // Guardar preguntas iniciales demo si no hay datos creados
-            localStorage.setItem(MOCK_QUESTIONS_KEY, JSON.stringify(INITIAL_MOCK_QUESTIONS));
-            localData = JSON.stringify(INITIAL_MOCK_QUESTIONS);
+        let localData = localStorage.getItem(getStorageKey(MOCK_QUESTIONS_KEY));
+        if (session) {
+            AppStateQuestions.questions = localData ? JSON.parse(localData) : [];
+        } else {
+            if (!localData) {
+                // Guardar preguntas iniciales demo si no hay datos creados
+                localStorage.setItem(getStorageKey(MOCK_QUESTIONS_KEY), JSON.stringify(INITIAL_MOCK_QUESTIONS));
+                localData = JSON.stringify(INITIAL_MOCK_QUESTIONS);
+            }
+            AppStateQuestions.questions = JSON.parse(localData);
         }
-        AppStateQuestions.questions = JSON.parse(localData);
     }
 
     applyFiltersAndRender();
@@ -455,6 +476,10 @@ async function handleQuestionSubmit(e) {
             headers: headers,
             body: JSON.stringify(apiPayload)
         });
+        if (response.status === 401) {
+            Auth.logout();
+            return;
+        }
 
         if (response.ok) {
             const data = await response.json();
@@ -468,7 +493,7 @@ async function handleQuestionSubmit(e) {
     } catch (error) {
         console.warn('Error en la llamada de API, guardando en localStorage (Mock).');
         
-        let localQuestions = JSON.parse(localStorage.getItem(MOCK_QUESTIONS_KEY) || '[]');
+        let localQuestions = JSON.parse(localStorage.getItem(getStorageKey(MOCK_QUESTIONS_KEY)) || '[]');
 
         if (isEdit) {
             localQuestions = localQuestions.map(q => String(q.id) === String(id) ? { ...q, ...payload } : q);
@@ -479,7 +504,7 @@ async function handleQuestionSubmit(e) {
             showToast('Pregunta de entrevista guardada localmente.', 'success');
         }
 
-        localStorage.setItem(MOCK_QUESTIONS_KEY, JSON.stringify(localQuestions));
+        localStorage.setItem(getStorageKey(MOCK_QUESTIONS_KEY), JSON.stringify(localQuestions));
         questionModal.hide();
         loadQuestions();
     } finally {
@@ -510,6 +535,10 @@ async function deleteQuestion(id) {
             method: 'DELETE',
             headers: headers
         });
+        if (response.status === 401) {
+            Auth.logout();
+            return;
+        }
 
         if (response.ok) {
             showToast('Pregunta de entrevista eliminada con éxito.', 'success');
@@ -522,9 +551,9 @@ async function deleteQuestion(id) {
     } catch (error) {
         console.warn('Error en la API de eliminación. Eliminando de localStorage mock.');
         
-        let localQuestions = JSON.parse(localStorage.getItem(MOCK_QUESTIONS_KEY) || '[]');
+        let localQuestions = JSON.parse(localStorage.getItem(getStorageKey(MOCK_QUESTIONS_KEY)) || '[]');
         localQuestions = localQuestions.filter(q => String(q.id) !== String(id));
-        localStorage.setItem(MOCK_QUESTIONS_KEY, JSON.stringify(localQuestions));
+        localStorage.setItem(getStorageKey(MOCK_QUESTIONS_KEY), JSON.stringify(localQuestions));
 
         showToast('Pregunta de entrevista eliminada localmente.', 'success');
         confirmDeleteQuestionModal.hide();

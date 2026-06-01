@@ -3,6 +3,15 @@
    ========================================================================== */
 
 const MOCK_EVENTS_KEY = 'job_tracker_events';
+
+function getStorageKey(baseKey) {
+    const session = typeof Auth !== 'undefined' ? Auth.isAuthenticated() : null;
+    if (session && session.user && session.user.email) {
+        return `${baseKey}_user_${session.user.email}`;
+    }
+    return baseKey;
+}
+
 const API_BASE_CALENDAR = window.API_BASE_URL || 'servidor';
 const API_EVENTS_URLS = {
     list: `${API_BASE_CALENDAR}/events.php`,
@@ -138,6 +147,10 @@ class JobTrackerCalendar {
             }
 
             const response = await fetch(API_EVENTS_URLS.list, { headers });
+            if (response.status === 401) {
+                Auth.logout();
+                return;
+            }
             if (response.ok) {
                 const data = await response.json();
                 
@@ -161,13 +174,13 @@ class JobTrackerCalendar {
             }
         } catch (error) {
             console.warn('Cargando eventos desde base de datos local (Mock localStorage).');
-            let localEvents = localStorage.getItem(MOCK_EVENTS_KEY);
+            let localEvents = localStorage.getItem(getStorageKey(MOCK_EVENTS_KEY));
             if (session) {
                 // Si está autenticado, no sembrar eventos mock
                 CalendarState.events = localEvents ? JSON.parse(localEvents) : [];
             } else {
                 if (!localEvents) {
-                    localStorage.setItem(MOCK_EVENTS_KEY, JSON.stringify(INITIAL_MOCK_EVENTS));
+                    localStorage.setItem(getStorageKey(MOCK_EVENTS_KEY), JSON.stringify(INITIAL_MOCK_EVENTS));
                     localEvents = JSON.stringify(INITIAL_MOCK_EVENTS);
                 }
                 CalendarState.events = JSON.parse(localEvents);
@@ -183,7 +196,7 @@ class JobTrackerCalendar {
         }
         // Fallback si no está cargado js/app.js
         const session = typeof Auth !== 'undefined' ? Auth.isAuthenticated() : null;
-        const localOffers = localStorage.getItem('job_tracker_offers');
+        const localOffers = localStorage.getItem(getStorageKey('job_tracker_offers'));
         if (session) {
             return localOffers ? JSON.parse(localOffers) : [];
         } else {
@@ -306,6 +319,10 @@ class JobTrackerCalendar {
                 headers: headers,
                 body: JSON.stringify(apiPayload)
             });
+            if (response.status === 401) {
+                Auth.logout();
+                return;
+            }
 
             if (response.ok) {
                 const data = await response.json();
@@ -320,24 +337,24 @@ class JobTrackerCalendar {
             console.warn('Guardando evento localmente (Mock localStorage).');
             
             // Simular guardado local
-            let localEvents = JSON.parse(localStorage.getItem(MOCK_EVENTS_KEY) || '[]');
+            let localEvents = JSON.parse(localStorage.getItem(getStorageKey(MOCK_EVENTS_KEY)) || '[]');
             const newEvent = {
                 id: 'local-ev-' + Math.random().toString(36).substr(2, 9),
                 ...payload
             };
             localEvents.push(newEvent);
-            localStorage.setItem(MOCK_EVENTS_KEY, JSON.stringify(localEvents));
+            localStorage.setItem(getStorageKey(MOCK_EVENTS_KEY), JSON.stringify(localEvents));
             
             // Si el tipo es entrevista, actualizar opcionalmente la fecha de entrevista en la oferta asociada
             if (payload.tipo === 'Entrevista') {
-                let localOffers = JSON.parse(localStorage.getItem('job_tracker_offers') || '[]');
+                let localOffers = JSON.parse(localStorage.getItem(getStorageKey('job_tracker_offers')) || '[]');
                 localOffers = localOffers.map(o => {
                     if (String(o.id) === String(payload.oferta_id)) {
                         return { ...o, fecha_entrevista: payload.fecha, estado: 'En proceso' };
                     }
                     return o;
                 });
-                localStorage.setItem('job_tracker_offers', JSON.stringify(localOffers));
+                localStorage.setItem(getStorageKey('job_tracker_offers'), JSON.stringify(localOffers));
                 
                 // Si la función loadOffers del CRUD existe, llamarla para sincronizar
                 if (window.loadOffers) {

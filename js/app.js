@@ -4,6 +4,15 @@
 
 // Configuración global del CRUD
 const MOCK_OFFERS_KEY = 'job_tracker_offers';
+
+function getStorageKey(baseKey) {
+    const session = typeof Auth !== 'undefined' ? Auth.isAuthenticated() : null;
+    if (session && session.user && session.user.email) {
+        return `${baseKey}_user_${session.user.email}`;
+    }
+    return baseKey;
+}
+
 const API_BASE_OFFERS = window.API_BASE_URL || 'servidor';
 const API_OFFERS_URLS = {
     list: `${API_BASE_OFFERS}/applications.php`,
@@ -250,6 +259,10 @@ async function loadOffers() {
         }
 
         const response = await fetch(API_OFFERS_URLS.list, { headers });
+        if (response.status === 401) {
+            Auth.logout();
+            return;
+        }
         if (response.ok) {
             const data = await response.json();
             // Mapear los datos de BD a las claves que espera el frontend
@@ -273,6 +286,10 @@ async function loadOffers() {
             // Intentar cargar la fecha de entrevista desde los eventos
             try {
                 const evResponse = await fetch(`${window.API_BASE_URL || 'servidor'}/events.php`, { headers });
+                if (evResponse.status === 401) {
+                    Auth.logout();
+                    return;
+                }
                 if (evResponse.ok) {
                     const evData = await evResponse.json();
                     evData.forEach(ev => {
@@ -294,13 +311,13 @@ async function loadOffers() {
         console.warn('Usando base de datos local para ofertas (Fallback LocalStorage).');
         const session = Auth.isAuthenticated();
         
-        let localData = localStorage.getItem(MOCK_OFFERS_KEY);
+        let localData = localStorage.getItem(getStorageKey(MOCK_OFFERS_KEY));
         if (session) {
             AppState.offers = localData ? JSON.parse(localData) : [];
         } else {
             if (!localData) {
                 // Guardar ofertas demo la primera vez
-                localStorage.setItem(MOCK_OFFERS_KEY, JSON.stringify(INITIAL_MOCK_OFFERS));
+                localStorage.setItem(getStorageKey(MOCK_OFFERS_KEY), JSON.stringify(INITIAL_MOCK_OFFERS));
                 localData = JSON.stringify(INITIAL_MOCK_OFFERS);
             }
             AppState.offers = JSON.parse(localData);
@@ -743,6 +760,10 @@ async function handleOfferSubmit(e) {
             headers: headers,
             body: JSON.stringify(apiPayload)
         });
+        if (response.status === 401) {
+            Auth.logout();
+            return;
+        }
 
         if (response.ok) {
             const data = await response.json();
@@ -778,7 +799,7 @@ async function handleOfferSubmit(e) {
         console.warn('Error en la llamada de API, realizando guardado en localStorage mock.');
         
         // Lógica de fallback local
-        let localOffers = JSON.parse(localStorage.getItem(MOCK_OFFERS_KEY) || '[]');
+        let localOffers = JSON.parse(localStorage.getItem(getStorageKey(MOCK_OFFERS_KEY)) || '[]');
         
         if (isEdit) {
             localOffers = localOffers.map(o => String(o.id) === String(id) ? { ...o, ...payload } : o);
@@ -791,7 +812,7 @@ async function handleOfferSubmit(e) {
             showToast('Postulación agregada a base de datos local (Mock).', 'success');
         }
         
-        localStorage.setItem(MOCK_OFFERS_KEY, JSON.stringify(localOffers));
+        localStorage.setItem(getStorageKey(MOCK_OFFERS_KEY), JSON.stringify(localOffers));
         offerModal.hide();
         loadOffers();
     } finally {
@@ -906,6 +927,10 @@ async function deleteOffer(id) {
             method: 'DELETE',
             headers: headers
         });
+        if (response.status === 401) {
+            Auth.logout();
+            return;
+        }
 
         if (response.ok) {
             showToast('Postulación eliminada con éxito.', 'success');
@@ -917,14 +942,14 @@ async function deleteOffer(id) {
     } catch (error) {
         console.warn('Error al eliminar en la API, borrando localmente.');
         
-        let localOffers = JSON.parse(localStorage.getItem(MOCK_OFFERS_KEY) || '[]');
+        let localOffers = JSON.parse(localStorage.getItem(getStorageKey(MOCK_OFFERS_KEY)) || '[]');
         localOffers = localOffers.filter(o => String(o.id) !== String(id));
-        localStorage.setItem(MOCK_OFFERS_KEY, JSON.stringify(localOffers));
+        localStorage.setItem(getStorageKey(MOCK_OFFERS_KEY), JSON.stringify(localOffers));
 
         // Borrar eventos asociados también
-        let localEvents = JSON.parse(localStorage.getItem('job_tracker_events') || '[]');
+        let localEvents = JSON.parse(localStorage.getItem(getStorageKey('job_tracker_events')) || '[]');
         localEvents = localEvents.filter(ev => String(ev.oferta_id) !== String(id));
-        localStorage.setItem('job_tracker_events', JSON.stringify(localEvents));
+        localStorage.setItem(getStorageKey('job_tracker_events'), JSON.stringify(localEvents));
 
         showToast('Postulación eliminada localmente.', 'success');
         confirmDeleteModal.hide();
